@@ -135,8 +135,8 @@ def main():
         # reshape the input image
         # x_image = tf.reshape(x, [-1, 250, 250, 1])
         # first layer
-        W_conv1 = weight_variable([250*250, 32])
-        b_conv1 = bias_variable([32])
+        W_conv1 = weight_variable([250*250, 100])
+        b_conv1 = bias_variable([100])
 
         # h_conv1 = tf.nn.relu(conv2d(x_image, W_conv1) + b_conv1)
         # h_pool1 = max_pool_2x2(h_conv1)
@@ -196,8 +196,10 @@ def main():
 
             train_step.run(feed_dict={x: train_X[bs * i: bs * i + bs], y_: train_y[bs * i: bs * i + bs]})
 
+        print("test accuracy %g" % accuracy.eval(feed_dict={x: test_X, y_: test_y}))
+
     # print test error
-    print("test accuracy %g" % accuracy.eval(feed_dict={x: test_X, y_: test_y}))
+    print("Final test accuracy %g" % accuracy.eval(feed_dict={x: test_X, y_: test_y}))
 
 if __name__ == '__main__':
     main()
