@@ -155,17 +155,17 @@ def main():
         act1 = tf.nn.relu(conv2d(X_image, w_conv1) + b_conv1)
         h1 = max_pool_2x2(act1)
 
-        # h1 = tf.reshape(h1, [-1, h_size])
+        h1 = tf.reshape(h1, [-1, h_size])
         w_soft = init_weights((h_size, y_size), "w_softmax")
 
-        yhat = tf.matmul(tf.reshape(h1, [-1, h_size]), w_soft)  # The \varphi function
+        yhat = tf.matmul(h1, w_soft)  # The \varphi function
 
         # Forward propagation
         predict = tf.argmax(yhat, axis=1)
 
         # Backward propagation
         cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=y, logits=yhat))
-        updates = tf.train.GradientDescentOptimizer(1).minimize(cost)
+        updates = tf.train.GradientDescentOptimizer(0.1).minimize(cost)
 
     # Saver
     saver = tf.train.Saver()
