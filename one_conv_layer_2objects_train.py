@@ -119,7 +119,6 @@ def get_data():
 
 def main():
     train_dir = './results/'
-    max_step = 3300
 
     # load the data
     train_X, test_X, train_y, test_y, train_fn, test_fn = get_data()
@@ -149,8 +148,8 @@ def main():
     # h_fc1_drop = tf.nn.dropout(h_fc1, keep_prob)
 
     # softmax
-    W_fc2 = weight_variable([32, 10])
-    b_fc2 = bias_variable([10])
+    W_fc2 = weight_variable([32, 2])
+    b_fc2 = bias_variable([2])
 
     y_conv = tf.nn.softmax(tf.matmul(h_pool1_flat, W_fc2) + b_fc2)
 
@@ -191,7 +190,7 @@ def main():
                 summary_writer.add_summary(summary_str, i)
                 summary_writer.flush()
 
-            if i % 1100 == 0 or i == max_step:
+            if i % 1100 == 0:
                 print(i)
                 checkpoint_file = os.path.join(train_dir, 'checkpoint')
                 saver.save(sess, checkpoint_file, global_step=i)
