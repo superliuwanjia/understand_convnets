@@ -11,6 +11,7 @@ import tensorflow as tf
 import numpy as np
 from scipy import misc
 import glob
+import time
 from sklearn import datasets
 from sklearn.model_selection import train_test_split
 
@@ -70,6 +71,12 @@ def get_data():
     random.shuffle(all_index)
 
     index_cutoff =  int(X.shape[0] * train_test_ratio)
+
+    print(index_cutoff)
+    print(all_Y[0:index_cutoff, :])
+    print(all_Y[index_cutoff:, :])
+
+    time.sleep(100)
     return all_X[0:index_cutoff,:], all_X[index_cutoff:,:], \
            all_Y[0:index_cutoff,:], all_Y[index_cutoff:,:], \
            fns[0:index_cutoff], fns[index_cutoff:], \
