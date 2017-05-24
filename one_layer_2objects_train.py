@@ -17,7 +17,7 @@ from sklearn.model_selection import train_test_split
 
 bs = 32
 epochs = 1
-num_hidden = 1000
+num_hidden = 100
 image_mode = "RGB"
 saved_model = "1layer_mlp_2objects_RGB.ckpt"
 RANDOM_SEED = 42
@@ -27,7 +27,7 @@ random.seed(RANDOM_SEED)
 tf.set_random_seed(RANDOM_SEED)
 np.random.seed(RANDOM_SEED)
 
-image_folder = os.path.join("./2objects/")
+image_folder = os.path.join("images/2objects/")
 
 
 def init_weights(shape, name):
@@ -57,6 +57,7 @@ def get_data():
         image = X.append(misc.imread(image_path, mode=image_mode).flatten())
     X = np.array(X) / 255
     Label = np.array(Label)
+    fns = np.array(fns)
     print X.shape
     print Label.shape
 
@@ -73,13 +74,13 @@ def get_data():
     all_index = range(X.shape[0])
     random.shuffle(all_index)
 
+
+    all_X = all_X[all_index, :]
+    all_Y = all_Y[all_index, :]
+    fns = fns[all_index]
+
     index_cutoff = int(X.shape[0] * train_test_ratio)
 
-    print(index_cutoff)
-    print(all_Y[0:index_cutoff, :])
-    print(all_Y[index_cutoff:, :])
-
-    time.sleep(100)
     return all_X[0:index_cutoff, :], all_X[index_cutoff:, :], \
            all_Y[0:index_cutoff, :], all_Y[index_cutoff:, :], \
            fns[0:index_cutoff], fns[index_cutoff:], \
@@ -130,9 +131,8 @@ def main():
 
             print("Epoch = %d, batch = %d, train accuracy = %.2f%%, test accuracy = %.2f%%"
                   % (epoch + 1, i + 1, 100. * train_accuracy, 100. * test_accuracy))
-            print(sess.run(predict, feed_dict={X: test_X, y: test_y}))
-            print(np.argmax(test_y, axis=1))
-            print(test_y)
+            # print(sess.run(predict, feed_dict={X: test_X, y: test_y}))
+            # print(np.argmax(test_y, axis=1))
 
     if not os.path.exists("saved_model"):
         os.mkdir("saved_model")
