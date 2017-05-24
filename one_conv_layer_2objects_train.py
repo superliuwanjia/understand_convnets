@@ -118,72 +118,88 @@ def get_data():
            fns[0:index_cutoff], fns[index_cutoff:], \
 
 def main():
+    train_dir = './results/'
+    max_step = 3300
+
+    # load the data
     train_X, test_X, train_y, test_y, train_fn, test_fn = get_data()
 
     # Layer's sizes
-    x_size = train_X.shape[1] # Number of input nodes
-    y_size = train_y.shape[1]  # Number of outcomes
+    # x_size = train_X.shape[1] # Number of input nodes
+    # y_size = train_y.shape[1]  # Number of outcomes
 
-    with tf.device("/cpu:0"):
-        # Symbols
-        X = tf.placeholder("float", shape=[None, x_size], name="x")
-        X_image = tf.reshape(X, [-1, input_shape[0], input_shape[1], input_shape[2]])
-        y = tf.placeholder("float", shape=[None, y_size], name="y")
+    sess = tf.InteractiveSession()
 
-        # Weight initializations
-        ks1 = [5, 5, 1]
-        nf1 = 92
-        h_size = nf1 * (input_shape[0] - ks1[0] + 1) * (input_shape[1] - ks1[1] + 1) / 4  # Number of hidden nodes
-        w_conv1 = weight_variable([ks1[0], ks1[1], ks1[2], nf1])
-        b_conv1 = bias_variable([nf1])
+    x = tf.placeholder(tf.float32, shape=[None, 250*250])
+    y_ = tf.placeholder(tf.float32, shape=[None, 2])
 
-        act1 = tf.nn.relu(conv2d(X_image, w_conv1) + b_conv1)
-        h1 = max_pool_2x2(act1)
+    # reshape the input image
+    x_image = tf.reshape(x, [-1, 250, 250, 1])
+    # first layer
+    W_conv1 = weight_variable([250, 250, 1, 32])
+    b_conv1 = bias_variable([32])
 
-        h1 = tf.reshape(h1, [-1, h_size])
-        w_soft = init_weights((h_size, y_size), "w_softmax")
+    h_conv1 = tf.nn.relu(conv2d(x_image, W_conv1) + b_conv1)
+    # h_pool1 = max_pool_2x2(h_conv1)
 
-        yhat = tf.nn.softmax(tf.matmul(h1, w_soft))  # The \varphi function
+    h_pool1_flat = tf.reshape(h_conv1, [-1, 1 * 1 * 32])
 
-        # Forward propagation
-        predict = tf.argmax(yhat, 1)
+    # dropout
+    # keep_prob = tf.placeholder(tf.float32)
+    # h_fc1_drop = tf.nn.dropout(h_fc1, keep_prob)
 
-        # Backward propagation
-        # cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=y, logits=yhat))
-        # updates = tf.train.GradientDescentOptimizer(0.1).minimize(cost)
+    # softmax
+    W_fc2 = weight_variable([32, 10])
+    b_fc2 = bias_variable([10])
 
-        cost = tf.reduce_mean(-tf.reduce_sum(y * tf.log(yhat), reduction_indices=[1]))
-        updates = tf.train.AdamOptimizer(1e-4).minimize(cost)
+    y_conv = tf.nn.softmax(tf.matmul(h_pool1_flat, W_fc2) + b_fc2)
 
-    # Saver
+    # setup training
+    cross_entropy = tf.reduce_mean(-tf.reduce_sum(y_ * tf.log(y_conv), reduction_indices=[1]))
+    train_step = tf.train.AdamOptimizer(1e-4).minimize(cross_entropy)
+    correct_prediction = tf.equal(tf.argmax(y_conv, 1), tf.argmax(y_, 1))
+    accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+
+    # Add a scalar summary for the snapshot loss.
+    tf.scalar_summary(cross_entropy.op.name, cross_entropy)
+    # Build the summary operation based on the TF collection of Summaries.
+    summary_op = tf.merge_all_summaries()
+
+    # Add the variable initializer Op.
+    init = tf.initialize_all_variables()
+
+    # Create a saver for writing training checkpoints.
     saver = tf.train.Saver()
 
-    # Run SGD
-    sess = tf.Session(config=tf.ConfigProto(log_device_placement=True))
-    init = tf.global_variables_initializer()
+    # Instantiate a SummaryWriter to output summaries and the Graph.
+    summary_writer = tf.train.SummaryWriter(train_dir, sess.graph)
+
+    # Run the Op to initialize the variables.
     sess.run(init)
 
+    # run the training
     for epoch in range(epochs):
-        # Train with each example
         for i in range(len(train_X) / bs):
-            sess.run(updates, feed_dict={X: train_X[bs * i: bs * i + bs], y: train_y[bs * i: bs * i + bs]})
-            soft = sess.run(w_soft, feed_dict={X: train_X[bs * i: bs * i + bs], y: train_y[bs * i: bs * i + bs]})
-            train_accuracy = np.mean(np.argmax(train_y, axis=1) ==
-                                     sess.run(predict, feed_dict={X: train_X, y: train_y}))
-            test_accuracy = np.mean(np.argmax(test_y, axis=1) ==
-                                    sess.run(predict, feed_dict={X: test_X, y: test_y}))
+            if i % 100 == 0:
+                print(i)
+                train_accuracy = accuracy.eval(feed_dict={
+                    x: train_X[bs * i: bs * i + bs], y_: train_y[bs * i: bs * i + bs]})
+                print("step %d, training accuracy %g" % (i, train_accuracy))
 
-            print("Epoch = %d, batch = %d, train accuracy = %.2f%%, test accuracy = %.2f%%"
-                  % (epoch + 1, i + 1, 100. * train_accuracy, 100. * test_accuracy))
+                # Update the events file.
+                summary_str = sess.run(summary_op, feed_dict={x: train_X[bs * i: bs * i + bs], y_: train_y[bs * i: bs * i + bs]})
+                summary_writer.add_summary(summary_str, i)
+                summary_writer.flush()
 
-    if not os.path.exists("saved_model"):
-        os.mkdir("saved_model")
+            if i % 1100 == 0 or i == max_step:
+                print(i)
+                checkpoint_file = os.path.join(train_dir, 'checkpoint')
+                saver.save(sess, checkpoint_file, global_step=i)
 
-    save_path = saver.save(sess, os.path.join("saved_model", saved_model))
-    print("Model saved in file: %s" % save_path)
+            train_step.run(feed_dict={x: train_X[bs * i: bs * i + bs], y_: train_y[bs * i: bs * i + bs]})
 
-    sess.close()
-
+    # print test error
+    print("test accuracy %g" % accuracy.eval(feed_dict={x: test_X, y_: test_y}))
 
 if __name__ == '__main__':
     main()
