@@ -93,7 +93,7 @@ def forwardprop(X, w_conv, b_conv, w_soft, is_max_pool=False):
     h = tf.nn.relu(conv2d(X, w_conv) + b_conv)  # The \sigma function
     if is_max_pool:
         h = max_pool_2x2(h)
-        h = tf.reshape(h, [-1, num_filter*(input_shape[0] - kernel_shape[0] + 1)*(input_shape[1] - kernel_shape[1] + 1)/4.])
+        h = tf.reshape(h, [-1, num_filter*(input_shape[0] - kernel_shape[0] + 1)*(input_shape[1] - kernel_shape[1] + 1)/4])
     else:
         h = tf.reshape(h, [-1, num_filter * (input_shape[0] - kernel_shape[0] + 1) * (input_shape[1] - kernel_shape[1] + 1)])
     yhat = tf.matmul(h, w_soft)  # The \varphi function
@@ -141,7 +141,7 @@ def main():
     # Layer's sizes
     x_size = train_X.shape[1] # Number of input nodes
     if is_max_pool:
-        h_size = num_filter*(input_shape[0] - kernel_shape[0] + 1)*(input_shape[1] - kernel_shape[1] + 1)/4.  # Number of hidden nodes
+        h_size = num_filter*(input_shape[0] - kernel_shape[0] + 1)*(input_shape[1] - kernel_shape[1] + 1)/4  # Number of hidden nodes
     else:
         h_size = num_filter * (input_shape[0] - kernel_shape[0] + 1) * (input_shape[1] - kernel_shape[1] + 1) # Number of hidden nodes
 
