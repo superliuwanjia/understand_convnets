@@ -17,11 +17,14 @@ from sklearn.model_selection import train_test_split
 
 bs = 32
 epochs = 1
-num_hidden = 1000
-image_mode = "RGB"
+kernel_shape = [5, 5, 1]
+num_filter = 32
+image_mode = "L"
 saved_model = "1layer_mlp_2objects_RGB.ckpt"
 RANDOM_SEED = 42
 train_test_ratio = 0.8
+input_shape = [250, 250, 1]
+is_max_pool = False
 
 random.seed(RANDOM_SEED)
 tf.set_random_seed(RANDOM_SEED)
@@ -29,19 +32,70 @@ np.random.seed(RANDOM_SEED)
 
 image_folder = os.path.join("./2objects/")
 
-
 def init_weights(shape, name):
     """ Weight initialization """
     weights = tf.random_normal(shape, stddev=0.1)
     return tf.Variable(weights, name=name)
 
+def weight_variable(shape):
+    '''
+    Initialize weights
+    :param shape: shape of weights, e.g. [w, h ,Cin, Cout] where
+    w: width of the filters
+    h: height of the filters
+    Cin: the number of the channels of the filters
+    Cout: the number of filters
+    :return: a tensor variable for weights with initial values
+    '''
+    initial = tf.truncated_normal(shape, stddev=0.1)
+    return tf.Variable(initial)
 
-def forwardprop(X, w_hidden, w_soft):
+def bias_variable(shape):
+    '''
+    Initialize biases
+    :param shape: shape of biases, e.g. [Cout] where
+    Cout: the number of filters
+    :return: a tensor variable for biases with initial values
+    '''
+    initial = tf.constant(0.1, shape=shape)
+    return tf.Variable(initial)
+
+def conv2d(x, W):
+    '''
+    Perform 2-D convolution
+    :param x: input tensor of size [N, W, H, Cin] where
+    N: the number of images
+    W: width of images
+    H: height of images
+    Cin: the number of channels of images
+    :param W: weight tensor [w, h, Cin, Cout]
+    w: width of the filters
+    h: height of the filters
+    Cin: the number of the channels of the filters = the number of channels of images
+    Cout: the number of filters
+    :return: a tensor of features extracted by the filters, a.k.a. the results after convolution
+    '''
+    return tf.nn.conv2d(x, W, strides=[1, 1, 1, 1], padding='VALID')
+
+def max_pool_2x2(x):
+    '''
+    Perform non-overlapping 2-D maxpooling on 2x2 regions in the input data
+    :param x: input data
+    :return: the results of maxpooling (max-marginalized + downsampling)
+    '''
+    return tf.nn.max_pool(x, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='SAME')
+
+def forwardprop(X, w_conv, b_conv, w_soft, is_max_pool=False):
     """
     Forward-propagation.
     IMPORTANT: yhat is not softmax since TensorFlow's softmax_cross_entropy_with_logits() does that internally.
     """
-    h = tf.nn.relu(tf.matmul(X, w_hidden))  # The \sigma function
+    h = tf.nn.relu(conv2d(X, w_conv) + b_conv)  # The \sigma function
+    if is_max_pool:
+        h = max_pool_2x2(h)
+        h = tf.reshape(h, [-1, num_filter*(input_shape[0] - kernel_shape[0] + 1)*(input_shape[1] - kernel_shape[1] + 1)/4.])
+    else:
+        h = tf.reshape(h, [-1, num_filter * (input_shape[0] - kernel_shape[0] + 1) * (input_shape[1] - kernel_shape[1] + 1)])
     yhat = tf.matmul(h, w_soft)  # The \varphi function
     return yhat, h
 
@@ -62,8 +116,7 @@ def get_data():
 
     # Prepend the column of 1s for bias
     num_exps, img_dim = X.shape
-    all_X = np.ones((num_exps, img_dim + 1))
-    all_X[:, 1:] = X
+    all_X = X
 
     # Convert into one-hot vectors
     num_labels = len(np.unique(Label))
@@ -73,37 +126,40 @@ def get_data():
     all_index = range(X.shape[0])
     random.shuffle(all_index)
 
+    all_X = all_X[all_index]
+    all_Y = all_Y[all_index]
+
     index_cutoff = int(X.shape[0] * train_test_ratio)
 
-    print(index_cutoff)
-    print(all_Y[0:index_cutoff, :])
-    print(all_Y[index_cutoff:, :])
-
-    time.sleep(100)
     return all_X[0:index_cutoff, :], all_X[index_cutoff:, :], \
            all_Y[0:index_cutoff, :], all_Y[index_cutoff:, :], \
            fns[0:index_cutoff], fns[index_cutoff:], \
 
 def main():
-
     train_X, test_X, train_y, test_y, train_fn, test_fn = get_data()
 
     # Layer's sizes
-    x_size = train_X.shape[1]  # Number of input nodes
-    h_size = num_hidden  # Number of hidden nodes
+    x_size = train_X.shape[1] # Number of input nodes
+    if is_max_pool:
+        h_size = num_filter*(input_shape[0] - kernel_shape[0] + 1)*(input_shape[1] - kernel_shape[1] + 1)/4.  # Number of hidden nodes
+    else:
+        h_size = num_filter * (input_shape[0] - kernel_shape[0] + 1) * (input_shape[1] - kernel_shape[1] + 1) # Number of hidden nodes
+        
     y_size = train_y.shape[1]  # Number of outcomes
 
     with tf.device("/cpu:0"):
         # Symbols
         X = tf.placeholder("float", shape=[None, x_size], name="x")
+        X_image = tf.reshape(X, [-1, input_shape[0], input_shape[1], input_shape[2]])
         y = tf.placeholder("float", shape=[None, y_size], name="y")
 
         # Weight initializations
-        w_hidden = init_weights((x_size, h_size), "w_hidden")
+        w_conv1 = weight_variable([kernel_shape[0], kernel_shape[1], kernel_shape[2], num_filter])
+        b_conv1 = bias_variable([num_filter])
         w_soft = init_weights((h_size, y_size), "w_softmax")
 
         # Forward propagation
-        yhat, h = forwardprop(X, w_hidden, w_soft)
+        yhat, h = forwardprop(X_image, w_conv1, b_conv1, w_soft, is_max_pool=is_max_pool)
         predict = tf.argmax(yhat, axis=1)
 
         # Backward propagation
@@ -130,9 +186,6 @@ def main():
 
             print("Epoch = %d, batch = %d, train accuracy = %.2f%%, test accuracy = %.2f%%"
                   % (epoch + 1, i + 1, 100. * train_accuracy, 100. * test_accuracy))
-            print(sess.run(predict, feed_dict={X: test_X, y: test_y}))
-            print(np.argmax(test_y, axis=1))
-            print(test_y)
 
     if not os.path.exists("saved_model"):
         os.mkdir("saved_model")
