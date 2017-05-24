@@ -16,7 +16,7 @@ from sklearn import datasets
 from sklearn.model_selection import train_test_split
 
 bs = 32
-epochs = 1
+epochs = 5
 kernel_shape = [5, 5, 1]
 num_filter = 32
 image_mode = "L"
