@@ -17,7 +17,7 @@ from sklearn.model_selection import train_test_split
 
 bs = 32
 epochs = 5
-kernel_shape = [3, 3, 1]
+kernel_shape = [5, 5, 1]
 num_filter = 92
 image_mode = "L"
 saved_model = "1layer_mlp_2objects_RGB.ckpt"
@@ -83,7 +83,7 @@ def max_pool_2x2(x):
     :param x: input data
     :return: the results of maxpooling (max-marginalized + downsampling)
     '''
-    return tf.nn.max_pool(x, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='SAME')
+    return tf.nn.max_pool(x, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='VALID')
 
 def forwardprop(X, w_conv, b_conv, w_soft, is_max_pool=False):
     """
@@ -114,7 +114,6 @@ def get_data():
     print X.shape
     print Label.shape
 
-    # Prepend the column of 1s for bias
     num_exps, img_dim = X.shape
     all_X = X
 
