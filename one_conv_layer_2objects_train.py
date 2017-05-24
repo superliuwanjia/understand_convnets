@@ -149,7 +149,7 @@ def main():
         # h_fc1_drop = tf.nn.dropout(h_fc1, keep_prob)
 
         # softmax
-        W_fc2 = weight_variable([32, 2])
+        W_fc2 = weight_variable([100, 2])
         b_fc2 = bias_variable([2])
 
         y_conv = tf.nn.softmax(tf.matmul(h_pool1_flat, W_fc2) + b_fc2)
