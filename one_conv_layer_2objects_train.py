@@ -160,13 +160,13 @@ def main():
         correct_prediction = tf.equal(tf.argmax(y_conv, 1), tf.argmax(y_, 1))
         accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 
-    # Add a scalar summary for the snapshot loss.
-    tf.scalar_summary(cross_entropy.op.name, cross_entropy)
-    # Build the summary operation based on the TF collection of Summaries.
-    summary_op = tf.merge_all_summaries()
+        # Add a scalar summary for the snapshot loss.
+        tf.scalar_summary(cross_entropy.op.name, cross_entropy)
+        # Build the summary operation based on the TF collection of Summaries.
+        summary_op = tf.merge_all_summaries()
 
-    # Add the variable initializer Op.
-    init = tf.initialize_all_variables()
+        # Add the variable initializer Op.
+        init = tf.initialize_all_variables()
 
     # Create a saver for writing training checkpoints.
     saver = tf.train.Saver()
