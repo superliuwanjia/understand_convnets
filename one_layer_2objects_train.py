@@ -82,7 +82,7 @@ def main():
     h_size = num_hidden         # Number of hidden nodes
     y_size = train_y.shape[1]   # Number of outcomes
 
-    with tf.device("/gpu:7"):
+    with tf.device("/cpu:0"):
         # Symbols
         X = tf.placeholder("float", shape=[None, x_size], name="x")
         y = tf.placeholder("float", shape=[None, y_size], name="y")
@@ -119,6 +119,8 @@ def main():
 
             print("Epoch = %d, batch = %d, train accuracy = %.2f%%, test accuracy = %.2f%%"
                 % (epoch + 1, i+1,100. * train_accuracy, 100. * test_accuracy))
+            print(sess.run(predict, feed_dict={X: test_X, y: test_y}))
+            print(np.argmax(test_y, axis=1))
 
 
     if not os.path.exists("saved_model"):
