@@ -121,6 +121,7 @@ def main():
                 % (epoch + 1, i+1,100. * train_accuracy, 100. * test_accuracy))
             print(sess.run(predict, feed_dict={X: test_X, y: test_y}))
             print(np.argmax(test_y, axis=1))
+            print(test_y)
 
 
     if not os.path.exists("saved_model"):
