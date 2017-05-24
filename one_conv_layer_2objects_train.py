@@ -17,8 +17,6 @@ from sklearn.model_selection import train_test_split
 
 bs = 32
 epochs = 5
-kernel_shape = [5, 5, 1]
-num_filter = 92
 image_mode = "L"
 saved_model = "1layer_mlp_2objects_RGB.ckpt"
 RANDOM_SEED = 42
@@ -83,22 +81,7 @@ def max_pool_2x2(x):
     :param x: input data
     :return: the results of maxpooling (max-marginalized + downsampling)
     '''
-    return tf.nn.max_pool(x, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='VALID')
-
-def forwardprop(X, w_conv, b_conv, w_soft, is_max_pool=False):
-    """
-    Forward-propagation.
-    IMPORTANT: yhat is not softmax since TensorFlow's softmax_cross_entropy_with_logits() does that internally.
-    """
-    h = tf.nn.relu(conv2d(X, w_conv) + b_conv)  # The \sigma function
-    if is_max_pool:
-        h = max_pool_2x2(h)
-        h = tf.reshape(h, [-1, num_filter*(input_shape[0] - kernel_shape[0] + 1)*(input_shape[1] - kernel_shape[1] + 1)/4])
-    else:
-        h = tf.reshape(h, [-1, num_filter * (input_shape[0] - kernel_shape[0] + 1) * (input_shape[1] - kernel_shape[1] + 1)])
-    yhat = tf.matmul(h, w_soft)  # The \varphi function
-    return yhat, h
-
+    return tf.nn.max_pool(x, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='SAME')
 
 def get_data():
     """ Read the data set and split them into training and test sets """
@@ -139,11 +122,6 @@ def main():
 
     # Layer's sizes
     x_size = train_X.shape[1] # Number of input nodes
-    if is_max_pool:
-        h_size = num_filter*(input_shape[0] - kernel_shape[0] + 1)*(input_shape[1] - kernel_shape[1] + 1)/4  # Number of hidden nodes
-    else:
-        h_size = num_filter * (input_shape[0] - kernel_shape[0] + 1) * (input_shape[1] - kernel_shape[1] + 1) # Number of hidden nodes
-
     y_size = train_y.shape[1]  # Number of outcomes
 
     with tf.device("/cpu:0"):
@@ -153,12 +131,20 @@ def main():
         y = tf.placeholder("float", shape=[None, y_size], name="y")
 
         # Weight initializations
-        w_conv1 = weight_variable([kernel_shape[0], kernel_shape[1], kernel_shape[2], num_filter])
-        b_conv1 = bias_variable([num_filter])
+        ks1 = [5, 5, 1]
+        nf1 = 92
+        w_conv1 = weight_variable([ks1[0], ks1[1], ks1[2], nf1])
+        b_conv1 = bias_variable([nf1])
+
+        act1 = tf.nn.relu(conv2d(X_image, w_conv1) + b_conv1)
+        h1 = max_pool_2x2(act1)
+
+        h_size = nf1 * (input_shape[0] - ks1[0] + 1) * (input_shape[1] - ks1[1] + 1) / 4  # Number of hidden nodes
         w_soft = init_weights((h_size, y_size), "w_softmax")
 
+        yhat = tf.matmul(h1, w_soft)  # The \varphi function
+
         # Forward propagation
-        yhat, h = forwardprop(X_image, w_conv1, b_conv1, w_soft, is_max_pool=is_max_pool)
         predict = tf.argmax(yhat, axis=1)
 
         # Backward propagation
