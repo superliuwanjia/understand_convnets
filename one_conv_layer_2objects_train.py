@@ -22,7 +22,6 @@ saved_model = "1layer_mlp_2objects_RGB.ckpt"
 RANDOM_SEED = 42
 train_test_ratio = 0.8
 input_shape = [250, 250, 1]
-is_max_pool = True
 
 random.seed(RANDOM_SEED)
 tf.set_random_seed(RANDOM_SEED)
@@ -133,15 +132,16 @@ def main():
     y_ = tf.placeholder(tf.float32, shape=[None, 2])
 
     # reshape the input image
-    x_image = tf.reshape(x, [-1, 250, 250, 1])
+    # x_image = tf.reshape(x, [-1, 250, 250, 1])
     # first layer
-    W_conv1 = weight_variable([5, 5, 1, 32])
+    W_conv1 = weight_variable([250*250, 32])
     b_conv1 = bias_variable([32])
 
-    h_conv1 = tf.nn.relu(conv2d(x_image, W_conv1) + b_conv1)
+    # h_conv1 = tf.nn.relu(conv2d(x_image, W_conv1) + b_conv1)
     # h_pool1 = max_pool_2x2(h_conv1)
 
-    h_pool1_flat = tf.reshape(h_conv1, [-1, 246 * 246 * 32])
+    # h_pool1_flat = tf.reshape(h_conv1, [-1, 246 * 246 * 32])
+    h_pool1_flat = tf.nn.relu(tf.matmul(x, W_conv1) + b_conv1)
 
     # dropout
     # keep_prob = tf.placeholder(tf.float32)
