@@ -24,7 +24,7 @@ saved_model = "1layer_mlp_2objects_RGB.ckpt"
 RANDOM_SEED = 42
 train_test_ratio = 0.8
 input_shape = [250, 250, 1]
-is_max_pool = False
+is_max_pool = True
 
 random.seed(RANDOM_SEED)
 tf.set_random_seed(RANDOM_SEED)
@@ -144,7 +144,7 @@ def main():
         h_size = num_filter*(input_shape[0] - kernel_shape[0] + 1)*(input_shape[1] - kernel_shape[1] + 1)/4.  # Number of hidden nodes
     else:
         h_size = num_filter * (input_shape[0] - kernel_shape[0] + 1) * (input_shape[1] - kernel_shape[1] + 1) # Number of hidden nodes
-        
+
     y_size = train_y.shape[1]  # Number of outcomes
 
     with tf.device("/cpu:0"):
