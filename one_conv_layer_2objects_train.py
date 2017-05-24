@@ -183,7 +183,7 @@ def main():
             if i % 1 == 0:
                 train_accuracy = accuracy.eval(feed_dict={
                     x: train_X[bs * i: bs * i + bs], y_: train_y[bs * i: bs * i + bs]})
-                print("step %d, training accuracy %g" % (epoch*epochs + i, train_accuracy))
+                print("step %d, training accuracy %g" % (epoch*len(train_X) / bs + i, train_accuracy))
 
                 # Update the events file.
                 # summary_str = sess.run(summary_op, feed_dict={x: train_X[bs * i: bs * i + bs], y_: train_y[bs * i: bs * i + bs]})
