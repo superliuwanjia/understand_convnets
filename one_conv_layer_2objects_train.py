@@ -18,7 +18,7 @@ from sklearn.model_selection import train_test_split
 bs = 32
 epochs = 5
 kernel_shape = [5, 5, 1]
-num_filter = 32
+num_filter = 92
 image_mode = "L"
 saved_model = "1layer_mlp_2objects_RGB.ckpt"
 RANDOM_SEED = 42
