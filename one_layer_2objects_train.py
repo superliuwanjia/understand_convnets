@@ -82,52 +82,52 @@ def main():
     h_size = num_hidden         # Number of hidden nodes
     y_size = train_y.shape[1]   # Number of outcomes
 
-    # Symbols
-    X = tf.placeholder("float", shape=[None, x_size], name="x")
-    y = tf.placeholder("float", shape=[None, y_size], name="y")
+    with tf.device("/gpu:7"):
+        # Symbols
+        X = tf.placeholder("float", shape=[None, x_size], name="x")
+        y = tf.placeholder("float", shape=[None, y_size], name="y")
 
-    # Weight initializations
-    w_hidden = init_weights((x_size, h_size), "w_hidden")
-    w_soft = init_weights((h_size, y_size), "w_softmax")
+        # Weight initializations
+        w_hidden = init_weights((x_size, h_size), "w_hidden")
+        w_soft = init_weights((h_size, y_size), "w_softmax")
 
-    # Forward propagation
-    yhat, h    = forwardprop(X, w_hidden, w_soft)
-    predict = tf.argmax(yhat, axis=1)
+        # Forward propagation
+        yhat, h    = forwardprop(X, w_hidden, w_soft)
+        predict = tf.argmax(yhat, axis=1)
 
-    # Backward propagation
-    cost    = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=y, logits=yhat))
-    updates = tf.train.GradientDescentOptimizer(1).minimize(cost)
+        # Backward propagation
+        cost    = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=y, logits=yhat))
+        updates = tf.train.GradientDescentOptimizer(1).minimize(cost)
 
     # Saver
     saver = tf.train.Saver()
 
     # Run SGD
     sess = tf.Session(config=tf.ConfigProto(log_device_placement=True))
-    with tf.device("/gpu:7"):
-        init = tf.global_variables_initializer()
-        sess.run(init)
+    init = tf.global_variables_initializer()
+    sess.run(init)
 
-        for epoch in range(epochs):
-            # Train with each example
-            for i in range(len(train_X)/bs):
-                sess.run(updates, feed_dict={X: train_X[bs*i: bs*i + bs], y: train_y[bs*i: bs*i + bs]})
-                soft = sess.run(w_soft, feed_dict={X: train_X[bs*i: bs*i + bs], y: train_y[bs*i: bs*i + bs]})
-                train_accuracy = np.mean(np.argmax(train_y, axis=1) ==
-                                         sess.run(predict, feed_dict={X: train_X, y: train_y}))
-                test_accuracy  = np.mean(np.argmax(test_y, axis=1) ==
-                                         sess.run(predict, feed_dict={X: test_X, y: test_y}))
+    for epoch in range(epochs):
+        # Train with each example
+        for i in range(len(train_X)/bs):
+            sess.run(updates, feed_dict={X: train_X[bs*i: bs*i + bs], y: train_y[bs*i: bs*i + bs]})
+            soft = sess.run(w_soft, feed_dict={X: train_X[bs*i: bs*i + bs], y: train_y[bs*i: bs*i + bs]})
+            train_accuracy = np.mean(np.argmax(train_y, axis=1) ==
+                                     sess.run(predict, feed_dict={X: train_X, y: train_y}))
+            test_accuracy  = np.mean(np.argmax(test_y, axis=1) ==
+                                     sess.run(predict, feed_dict={X: test_X, y: test_y}))
 
-                print("Epoch = %d, batch = %d, train accuracy = %.2f%%, test accuracy = %.2f%%"
-                    % (epoch + 1, i+1,100. * train_accuracy, 100. * test_accuracy))
+            print("Epoch = %d, batch = %d, train accuracy = %.2f%%, test accuracy = %.2f%%"
+                % (epoch + 1, i+1,100. * train_accuracy, 100. * test_accuracy))
 
 
-        if not os.path.exists("saved_model"):
-            os.mkdir("saved_model")
+    if not os.path.exists("saved_model"):
+        os.mkdir("saved_model")
 
-        save_path = saver.save(sess, os.path.join("saved_model",saved_model))
-        print("Model saved in file: %s" % save_path)
+    save_path = saver.save(sess, os.path.join("saved_model",saved_model))
+    print("Model saved in file: %s" % save_path)
 
-        sess.close()
+    sess.close()
 
 
 if __name__ == '__main__':
