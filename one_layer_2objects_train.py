@@ -17,8 +17,8 @@ from sklearn.model_selection import train_test_split
 bs = 32
 epochs = 1
 num_hidden = 1000
-image_mode = "L"
-saved_model = "1layer_mlp_2objects_L.ckpt"
+image_mode = "RGB"
+saved_model = "1layer_mlp_2objects_RGB.ckpt"
 RANDOM_SEED = 42
 train_test_ratio = 0.8
 

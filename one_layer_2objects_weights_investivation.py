@@ -9,11 +9,11 @@ import one_layer_2objects_train
 RANDOM_SEED = 42
 tf.set_random_seed(RANDOM_SEED)
 
-model = os.path.join("saved_model","1layer_mlp_2objects_RGB.ckpt")
-graph = os.path.join("saved_model","1layer_mlp_2objects_RGB.ckpt.meta")
-save_path = "reconstructed_images"
+model = os.path.join("saved_model","1layer_mlp_2objects_L.ckpt")
+graph = os.path.join("saved_model","1layer_mlp_2objects_L.ckpt.meta")
+save_path = "reconstructed_images_BW"
 
-def save_images(images, fns, path, dim=(250,250,3)):
+def save_images(images, fns, path, dim=(250,250)):
     if not os.path.exists(path):
         os.mkdir(path)
 
@@ -50,6 +50,7 @@ def main():
     
         # Relu state
         relu_mask = tf.to_float(tf.greater(h, tf.zeros_like(h)))
+        negative_relu_mask = tf.to_float(tf.less(h, ))
  
         reconstructed_X = tf.matmul(tf.multiply(h, relu_mask), tf.transpose(w_hidden))
         reconstructed_images = sess.run(reconstructed_X, feed_dict={X:train_X, y:train_y})      
