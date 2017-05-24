@@ -161,9 +161,9 @@ def main():
         accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 
         # Add a scalar summary for the snapshot loss.
-        tf.scalar_summary(cross_entropy.op.name, cross_entropy)
+        tf.summary.scalar(cross_entropy.op.name, cross_entropy)
         # Build the summary operation based on the TF collection of Summaries.
-        summary_op = tf.merge_all_summaries()
+        summary_op = tf.summary.merge_all()
 
         # Add the variable initializer Op.
         init = tf.initialize_all_variables()
@@ -172,7 +172,7 @@ def main():
     saver = tf.train.Saver()
 
     # Instantiate a SummaryWriter to output summaries and the Graph.
-    summary_writer = tf.train.SummaryWriter(train_dir, sess.graph)
+    summary_writer = tf.summary.FileWriter(train_dir, sess.graph)
 
     # Run the Op to initialize the variables.
     sess.run(init)
