@@ -181,7 +181,6 @@ def main():
     for epoch in range(epochs):
         for i in range(len(train_X) / bs):
             if i % 100 == 0:
-                print(i)
                 train_accuracy = accuracy.eval(feed_dict={
                     x: train_X[bs * i: bs * i + bs], y_: train_y[bs * i: bs * i + bs]})
                 print("step %d, training accuracy %g" % (i, train_accuracy))
@@ -192,7 +191,6 @@ def main():
                 # summary_writer.flush()
 
             if i % 1100 == 0:
-                print(i)
                 checkpoint_file = os.path.join(train_dir, 'checkpoint')
                 saver.save(sess, checkpoint_file, global_step=i)
 
