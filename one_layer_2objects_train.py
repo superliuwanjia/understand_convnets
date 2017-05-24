@@ -102,7 +102,7 @@ def main():
     saver = tf.train.Saver()
 
     # Run SGD
-    sess = tf.Session()
+    sess = tf.Session(config=tf.ConfigProto(log_device_placement=True))
     with tf.device("/gpu:7"):
         init = tf.global_variables_initializer()
         sess.run(init)
