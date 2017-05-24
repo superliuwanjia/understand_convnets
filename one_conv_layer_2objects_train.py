@@ -83,21 +83,6 @@ def max_pool_2x2(x):
     '''
     return tf.nn.max_pool(x, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='SAME')
 
-def forwardprop(X, w_conv, b_conv, w_soft, is_max_pool=False):
-    """
-    Forward-propagation.
-    IMPORTANT: yhat is not softmax since TensorFlow's softmax_cross_entropy_with_logits() does that internally.
-    """
-    h = tf.nn.relu(conv2d(X, w_conv) + b_conv)  # The \sigma function
-    if is_max_pool:
-        h = max_pool_2x2(h)
-        h = tf.reshape(h, [-1, num_filter*(input_shape[0] - kernel_shape[0] + 1)*(input_shape[1] - kernel_shape[1] + 1)/4])
-    else:
-        h = tf.reshape(h, [-1, num_filter * (input_shape[0] - kernel_shape[0] + 1) * (input_shape[1] - kernel_shape[1] + 1)])
-    yhat = tf.matmul(h, w_soft)  # The \varphi function
-    return yhat, h
-
-
 def get_data():
     """ Read the data set and split them into training and test sets """
     X = []
@@ -158,14 +143,17 @@ def main():
         h1 = tf.reshape(h1, [-1, h_size])
         w_soft = init_weights((h_size, y_size), "w_softmax")
 
-        yhat = tf.matmul(h1, w_soft)  # The \varphi function
+        yhat = tf.nn.softmax(tf.matmul(h1, w_soft))  # The \varphi function
 
         # Forward propagation
-        predict = tf.argmax(yhat, axis=1)
+        predict = tf.argmax(yhat, 1)
 
         # Backward propagation
-        cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=y, logits=yhat))
-        updates = tf.train.GradientDescentOptimizer(0.1).minimize(cost)
+        # cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=y, logits=yhat))
+        # updates = tf.train.GradientDescentOptimizer(0.1).minimize(cost)
+
+        cost = tf.reduce_mean(-tf.reduce_sum(y * tf.log(yhat), reduction_indices=[1]))
+        updates = tf.train.AdamOptimizer(1e-4).minimize(cost)
 
     # Saver
     saver = tf.train.Saver()
