@@ -128,36 +128,37 @@ def main():
 
     sess = tf.InteractiveSession()
 
-    x = tf.placeholder(tf.float32, shape=[None, 250*250])
-    y_ = tf.placeholder(tf.float32, shape=[None, 2])
+    with tf.device("/gpu:0"):
+        x = tf.placeholder(tf.float32, shape=[None, 250*250])
+        y_ = tf.placeholder(tf.float32, shape=[None, 2])
 
-    # reshape the input image
-    # x_image = tf.reshape(x, [-1, 250, 250, 1])
-    # first layer
-    W_conv1 = weight_variable([250*250, 32])
-    b_conv1 = bias_variable([32])
+        # reshape the input image
+        # x_image = tf.reshape(x, [-1, 250, 250, 1])
+        # first layer
+        W_conv1 = weight_variable([250*250, 32])
+        b_conv1 = bias_variable([32])
 
-    # h_conv1 = tf.nn.relu(conv2d(x_image, W_conv1) + b_conv1)
-    # h_pool1 = max_pool_2x2(h_conv1)
+        # h_conv1 = tf.nn.relu(conv2d(x_image, W_conv1) + b_conv1)
+        # h_pool1 = max_pool_2x2(h_conv1)
 
-    # h_pool1_flat = tf.reshape(h_conv1, [-1, 246 * 246 * 32])
-    h_pool1_flat = tf.nn.relu(tf.matmul(x, W_conv1) + b_conv1)
+        # h_pool1_flat = tf.reshape(h_conv1, [-1, 246 * 246 * 32])
+        h_pool1_flat = tf.nn.relu(tf.matmul(x, W_conv1) + b_conv1)
 
-    # dropout
-    # keep_prob = tf.placeholder(tf.float32)
-    # h_fc1_drop = tf.nn.dropout(h_fc1, keep_prob)
+        # dropout
+        # keep_prob = tf.placeholder(tf.float32)
+        # h_fc1_drop = tf.nn.dropout(h_fc1, keep_prob)
 
-    # softmax
-    W_fc2 = weight_variable([32, 2])
-    b_fc2 = bias_variable([2])
+        # softmax
+        W_fc2 = weight_variable([32, 2])
+        b_fc2 = bias_variable([2])
 
-    y_conv = tf.nn.softmax(tf.matmul(h_pool1_flat, W_fc2) + b_fc2)
+        y_conv = tf.nn.softmax(tf.matmul(h_pool1_flat, W_fc2) + b_fc2)
 
-    # setup training
-    cross_entropy = tf.reduce_mean(-tf.reduce_sum(y_ * tf.log(y_conv), reduction_indices=[1]))
-    train_step = tf.train.AdamOptimizer(1e-4).minimize(cross_entropy)
-    correct_prediction = tf.equal(tf.argmax(y_conv, 1), tf.argmax(y_, 1))
-    accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+        # setup training
+        cross_entropy = tf.reduce_mean(-tf.reduce_sum(y_ * tf.log(y_conv), reduction_indices=[1]))
+        train_step = tf.train.AdamOptimizer(1e-4).minimize(cross_entropy)
+        correct_prediction = tf.equal(tf.argmax(y_conv, 1), tf.argmax(y_, 1))
+        accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 
     # Add a scalar summary for the snapshot loss.
     tf.scalar_summary(cross_entropy.op.name, cross_entropy)
