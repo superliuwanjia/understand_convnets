@@ -136,7 +136,7 @@ def main():
         # x_image = tf.reshape(x, [-1, 250, 250, 1])
         # first layer
         W_conv1 = weight_variable([250*250, 5000])
-        b_conv1 = bias_variable([1000])
+        b_conv1 = bias_variable([5000])
 
         # h_conv1 = tf.nn.relu(conv2d(x_image, W_conv1) + b_conv1)
         # h_pool1 = max_pool_2x2(h_conv1)
