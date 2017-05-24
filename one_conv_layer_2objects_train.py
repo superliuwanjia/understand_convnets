@@ -135,7 +135,7 @@ def main():
         # reshape the input image
         # x_image = tf.reshape(x, [-1, 250, 250, 1])
         # first layer
-        W_conv1 = weight_variable([250*250, 1000])
+        W_conv1 = weight_variable([250*250, 5000])
         b_conv1 = bias_variable([1000])
 
         # h_conv1 = tf.nn.relu(conv2d(x_image, W_conv1) + b_conv1)
@@ -149,7 +149,7 @@ def main():
         # h_fc1_drop = tf.nn.dropout(h_fc1, keep_prob)
 
         # softmax
-        W_fc2 = weight_variable([1000, 2])
+        W_fc2 = weight_variable([5000, 2])
         b_fc2 = bias_variable([2])
 
         y_conv = tf.nn.softmax(tf.matmul(h_pool1_flat, W_fc2) + b_fc2)
