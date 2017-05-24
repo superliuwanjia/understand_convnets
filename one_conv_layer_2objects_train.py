@@ -135,13 +135,13 @@ def main():
     # reshape the input image
     x_image = tf.reshape(x, [-1, 250, 250, 1])
     # first layer
-    W_conv1 = weight_variable([250, 250, 1, 32])
+    W_conv1 = weight_variable([5, 5, 1, 32])
     b_conv1 = bias_variable([32])
 
     h_conv1 = tf.nn.relu(conv2d(x_image, W_conv1) + b_conv1)
     # h_pool1 = max_pool_2x2(h_conv1)
 
-    h_pool1_flat = tf.reshape(h_conv1, [-1, 1 * 1 * 32])
+    h_pool1_flat = tf.reshape(h_conv1, [-1, 246 * 246 * 32])
 
     # dropout
     # keep_prob = tf.placeholder(tf.float32)
