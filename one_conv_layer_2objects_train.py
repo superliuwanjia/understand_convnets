@@ -7,7 +7,7 @@ import glob
 
 bs = 32
 epochs = 4
-image_mode = "L"
+image_mode = "RGB"
 saved_model = "softmax_2objects_RGB.ckpt"
 RANDOM_SEED = 42
 train_test_ratio = 0.8
