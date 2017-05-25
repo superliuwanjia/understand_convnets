@@ -47,37 +47,44 @@ def main():
         yhat, h = one_layer_2objects_train.forwardprop(X, w_hidden, w_soft)
         predict = tf.argmax(yhat, axis=1)
     
-        # Relu state
-        relu_mask = tf.to_float(tf.greater(h, tf.zeros_like(h)))
-        negative_relu_mask = tf.to_float(tf.less(h, tf.zeros_like(h)))
-        all_pass_mask = tf.to_float(tf.ones_like(h))
- 
-        # reconstruct using forward relu state
-        pos_relu_X = tf.matmul(tf.multiply(h, relu_mask), tf.transpose(w_hidden))
-        pos_relu_X = sess.run(pos_relu_X, feed_dict={X:train_X, y:train_y})      
-       
-        # reconstruct using negative forward relu state
-        neg_relu_X = tf.matmul(tf.multiply(h, relu_mask), tf.transpose(w_hidden))
-        neg_relu_X = sess.run(neg_relu_X, feed_dict={X:train_X, y:train_y})      
-        
-        # reconstruct regardless of relu state
-        all_pass_X = tf.matmul(tf.multiply(h, relu_mask), tf.transpose(w_hidden))
-        all_pass_X = sess.run(all_pass_X, feed_dict={X:train_X, y:train_y})      
-       
-        # save all reconstructed images
-        save_images(pos_relu_X[:,0:pos_relu_X.shape[1]-1],train_fn, \
-            os.path.join(viz_path, "pos_relu")) 
-        save_images(neg_relu_X[:,0:neg_relu_X.shape[1]-1],train_fn, \
-            os.path.join(viz_path, "neg_relu")) 
-        save_images(all_pass_X[:,0:all_pass_X.shape[1]-1],train_fn, \
-            os.path.join(viz_path, "all_pass")) 
-        
+
         # visualize weights
         w = sess.run(w_hidden)
-        save_images([w[:i][0:w.shape[0]-1] for i in w.shape[1]], \
-                    [str(i) for i in range(w.shape[1]), os.path.join(viz_path, "weights"))  
+        save_images([w[:,i][0:w.shape[0]-1,] for i in range(w.shape[1])], \
+                    [str(i)+".png" for i in range(w.shape[1])], os.path.join(viz_path, "weights"))  
 
-        # visualize class templates
-  
+        yhat_p = tf.placeholder("float", shape=[None, y_size], name="yhap_p")
+
+        for y_type, y_to_use in zip(["forward_logit", "class_logit"], [yhat, yhat_p]): 
+            h_hat = tf.matmul(y_to_use, tf.transpose(w_soft))
+
+            # Relu state
+            relu_mask = tf.to_float(tf.greater(h_hat, tf.zeros_like(h_hat)))
+            negative_relu_mask = tf.to_float(tf.equal(h_hat, tf.zeros_like(h_hat)))
+            all_pass_mask = tf.to_float(tf.ones_like(h_hat))
+     
+            # reconstruct using forward relu state
+            pos_relu_X = tf.matmul(tf.multiply(h_hat, relu_mask), tf.transpose(w_hidden))
+            pos_relu_X = sess.run(pos_relu_X, feed_dict={X:train_X, y:train_y, yhat_p:train_y})      
+           
+            # reconstruct using negative forward relu state
+            neg_relu_X = tf.matmul(tf.multiply(h_hat, negative_relu_mask), tf.transpose(w_hidden))
+            neg_relu_X = sess.run(neg_relu_X, feed_dict={X:train_X, y:train_y, yhat_p:train_y})      
+            
+            # reconstruct regardless of relu state
+            all_pass_X = tf.matmul(tf.multiply(h_hat, all_pass_mask), tf.transpose(w_hidden))
+            all_pass_X = sess.run(all_pass_X, feed_dict={X:train_X, y:train_y, yhat_p:train_y})      
+           
+            # save all reconstructed images
+            save_images(pos_relu_X[:,0:pos_relu_X.shape[1]-1],train_fn, \
+                os.path.join(viz_path, "pos_relu_"+y_type)) 
+            save_images(neg_relu_X[:,0:neg_relu_X.shape[1]-1],train_fn, \
+                os.path.join(viz_path, "neg_relu_"+y_type)) 
+            save_images(all_pass_X[:,0:all_pass_X.shape[1]-1],train_fn, \
+                os.path.join(viz_path, "all_pass_"+y_type)) 
+            
+        
+
+ 
 if __name__ == "__main__":
     main()

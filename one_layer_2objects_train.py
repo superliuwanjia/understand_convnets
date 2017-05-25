@@ -32,7 +32,8 @@ image_folder = os.path.join("images/2objects/")
 
 def init_weights(shape, name):
     """ Weight initialization """
-    weights = tf.random_normal(shape, stddev=0.1)
+    weights = tf.random_normal(shape, stddev=1e-8)
+    #weights = tf.zeros(shape)
     return tf.Variable(weights, name=name)
 
 
@@ -109,7 +110,8 @@ def main():
 
         # Backward propagation
         cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=y, logits=yhat))
-        updates = tf.train.GradientDescentOptimizer(1).minimize(cost)
+        #updates = tf.train.GradientDescentOptimizer(0.1).minimize(cost)
+        updates = tf.train.AdamOptimizer(learning_rate=0.01).minimize(cost)
 
     # Saver
     saver = tf.train.Saver()
