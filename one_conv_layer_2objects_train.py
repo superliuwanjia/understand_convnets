@@ -26,7 +26,7 @@ def init_weights(shape, name):
     weights = tf.random_normal(shape, stddev=1e-8)
     return tf.Variable(weights, name=name)
 
-def init_bias(shape):
+def init_bias(shape, name):
     '''
     Initialize biases
     :param shape: shape of biases, e.g. [Cout] where
@@ -34,7 +34,7 @@ def init_bias(shape):
     :return: a tensor variable for biases with initial values
     '''
     initial = tf.constant(0., shape=shape)
-    return tf.Variable(initial)
+    return tf.Variable(initial, name=name)
 
 
 def forwardprop(X, w_soft):
@@ -116,8 +116,8 @@ def main():
     ks1 = [5, 5, 1]
     nf1 = 32
     h_size = nf1 * (input_shape[0] - ks1[0] + 1) * (input_shape[1] - ks1[1] + 1) / 4  # Number of hidden nodes
-    w_conv1 = init_weights([ks1[0], ks1[1], ks1[2], nf1])
-    b_conv1 = init_bias([nf1])
+    w_conv1 = init_weights([ks1[0], ks1[1], ks1[2], nf1], name="w1")
+    b_conv1 = init_bias([nf1], name="b1")
 
     act1 = tf.nn.relu(tf.nn.conv2d(X_image, w_conv1, strides=[1, 1, 1, 1], padding='VALID') + b_conv1)
     h1 = tf.nn.max_pool(act1, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='SAME')
@@ -126,7 +126,7 @@ def main():
 
     # Weight initializations
     w_soft = init_weights([h_size, y_size], "w_soft")
-    b_soft = init_bias([y_size])
+    b_soft = init_bias([y_size], name="b_soft")
 
     # Forward propagation
     yhat = tf.nn.softmax(tf.matmul(h1, w_soft) + b_soft)
