@@ -23,8 +23,10 @@ def save_images(images, fns, path, dim=(250, 250, 3)):
 
     for i, (image, fn) in enumerate(zip(images, fns)):
         image = image.reshape(dim)
-        import pdb; pdb.set_trace()
-        scipy.misc.imsave(os.path.join(path, fn), image)
+        if dim[-1] == 1:
+            scipy.misc.imsave(os.path.join(path, fn), image[:,:,0])
+        else:
+            scipy.misc.imsave(os.path.join(path, fn), image)
 
 def main():
     # restore session with variables
