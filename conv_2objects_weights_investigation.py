@@ -18,14 +18,13 @@ ks1 = [32, 32, 1]
 
 
 def save_images(images, fns, path, dim=(250, 250, 3)):
-    # import pdb; pdb.set_trace()
     if not os.path.exists(path):
         os.mkdir(path)
 
     for i, (image, fn) in enumerate(zip(images, fns)):
         image = image.reshape(dim)
+        import pdb; pdb.set_trace()
         scipy.misc.imsave(os.path.join(path, fn), image)
-
 
 def main():
     # restore session with variables
