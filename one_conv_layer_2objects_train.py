@@ -126,8 +126,6 @@ def main():
     x_size = train_X.shape[1] # Number of input nodes
     y_size = train_y.shape[1]  # Number of outcomes
 
-    sess = tf.InteractiveSession()
-
     with tf.device("/gpu:0"):
         X = tf.placeholder(tf.float32, shape=[None, 250*250])
         y_ = tf.placeholder(tf.float32, shape=[None, 2])
