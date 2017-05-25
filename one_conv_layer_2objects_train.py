@@ -15,7 +15,7 @@ import time
 from sklearn import datasets
 from sklearn.model_selection import train_test_split
 
-bs = 576
+bs = 32
 epochs = 20
 image_mode = "L"
 saved_model = "1layer_mlp_2objects_RGB.ckpt"
