@@ -29,28 +29,29 @@ def main():
 
     saver = tf.train.import_meta_graph(graph)
     with tf.Session() as sess:
-        saver.restore(sess, model)
-        print "Session loaded."
+        with tf.device("/gpu:0"):
+            saver.restore(sess, model)
+            print "Session loaded."
 
-        train_X, test_X, train_y, test_y, train_fn, test_fn = conv_2objects_train.get_data()
-        # Layer's sizes
-        x_size = train_X.shape[1]  # Number of input nodes
-        y_size = train_y.shape[1]  # Number of outcomes
+            train_X, test_X, train_y, test_y, train_fn, test_fn = conv_2objects_train.get_data()
+            # Layer's sizes
+            x_size = train_X.shape[1]  # Number of input nodes
+            y_size = train_y.shape[1]  # Number of outcomes
 
-        # Symbols
-        X = tf.placeholder("float", shape=[None, x_size], name="x")
-        y = tf.placeholder("float", shape=[None, y_size], name="y")
+            # Symbols
+            X = tf.placeholder("float", shape=[None, x_size], name="x")
+            y = tf.placeholder("float", shape=[None, y_size], name="y")
 
-        # Weight initializations
-        w1 = tf.get_collection(tf.GraphKeys.VARIABLES, "w1")[0]
-        w_soft = tf.get_collection(tf.GraphKeys.VARIABLES, "w_soft")[0]
+            # Weight initializations
+            w1 = tf.get_collection(tf.GraphKeys.VARIABLES, "w1")[0]
+            w_soft = tf.get_collection(tf.GraphKeys.VARIABLES, "w_soft")[0]
 
-        # Forward propagation
-        u1 = tf.get_collection("u1")[0]
-        act1 = tf.get_collection("act1")[0]
-        u_soft = tf.get_collection("u_soft")[0]
-        yhat = tf.get_collection("yhat")[0]
-        predict = tf.get_collection("predict")[0]
+            # Forward propagation
+            u1 = tf.get_collection("u1")[0]
+            act1 = tf.get_collection("act1")[0]
+            u_soft = tf.get_collection("u_soft")[0]
+            yhat = tf.get_collection("yhat")[0]
+            predict = tf.get_collection("predict")[0]
 
         # visualize weights
         w1_val = sess.run(w1)
