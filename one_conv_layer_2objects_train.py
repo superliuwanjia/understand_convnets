@@ -5,7 +5,7 @@ import numpy as np
 from scipy import misc
 import glob
 
-bs = 576
+bs = 32
 epochs = 4
 image_mode = "L"
 saved_model = "conv_2objects_RGB.ckpt"
@@ -113,7 +113,7 @@ def main():
     # reshape the input image
     X_image = tf.reshape(X, [-1, 250, 250, 1])
     # first layer
-    ks1 = [250, 250, 1]
+    ks1 = [249, 249, 1]
     nf1 = 1000
     h_size = nf1 * (input_shape[0] - ks1[0] + 1) * (input_shape[1] - ks1[1] + 1)  # Number of hidden nodes
     w_conv1 = init_weights([ks1[0], ks1[1], ks1[2], nf1], name="w1")
