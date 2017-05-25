@@ -18,6 +18,29 @@ np.random.seed(RANDOM_SEED)
 
 image_folder = os.path.join("./images/2objects/")
 
+def weight_variable(shape):
+    '''
+    Initialize weights
+    :param shape: shape of weights, e.g. [w, h ,Cin, Cout] where
+    w: width of the filters
+    h: height of the filters
+    Cin: the number of the channels of the filters
+    Cout: the number of filters
+    :return: a tensor variable for weights with initial values
+    '''
+    initial = tf.random_normal(shape, stddev=0.001)
+    return tf.Variable(initial)
+
+def bias_variable(shape):
+    '''
+    Initialize biases
+    :param shape: shape of biases, e.g. [Cout] where
+    Cout: the number of filters
+    :return: a tensor variable for biases with initial values
+    '''
+    initial = tf.constant(0., shape=shape)
+    return tf.Variable(initial)
+
 
 def init_weights(shape, name):
     """ Weight initialization """
@@ -102,21 +125,26 @@ def main():
         X = tf.placeholder("float", shape=[None, x_size], name="x")
         y = tf.placeholder("float", shape=[None, y_size], name="y")
 
-        # Weight initializations
-        w_soft = init_weights((x_size, y_size), "w_soft")
-        w_soft_init = init_weights((x_size, y_size), "w_soft_init")
-        w_soft_diff = init_weights((x_size, y_size), "w_soft_diff")
+        # # Weight initializations
+        # w_soft = init_weights((x_size, y_size), "w_soft")
+        # w_soft_init = init_weights((x_size, y_size), "w_soft_init")
+        # w_soft_diff = init_weights((x_size, y_size), "w_soft_diff")
+        #
+        # # record the decision boundary
+        # dec_b = tf.Variable(dec_b, name="dec_b")
+        #
+        # # weights noise cancelling
+        # Op_record_init = w_soft_init.assign(w_soft)
+        # Op_diff = w_soft_diff.assign(w_soft - w_soft_init)
+        #
+        # # Forward propagation
+        # yhat = forwardprop(X, w_soft)
+        # predict = tf.argmax(yhat, axis=1)
 
-        # record the decision boundary
-        dec_b = tf.Variable(dec_b, name="dec_b")
+        W_fc2 = weight_variable([250 * 250, 2])
+        b_fc2 = bias_variable([2])
 
-        # weights noise cancelling
-        Op_record_init = w_soft_init.assign(w_soft)
-        Op_diff = w_soft_diff.assign(w_soft - w_soft_init)
-
-        # Forward propagation
-        yhat = forwardprop(X, w_soft)
-        predict = tf.argmax(yhat, axis=1)
+        yhat = tf.nn.softmax(tf.matmul(X, W_fc2) + b_fc2)
 
         # Backward propagation
         # cost = tf.nn.softmax_cross_entropy_with_logits(labels=y, logits=yhat)
