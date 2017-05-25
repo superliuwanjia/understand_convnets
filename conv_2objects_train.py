@@ -132,8 +132,15 @@ def main():
         b_soft = init_bias([y_size], name="b_soft")
 
         # Forward propagation
-        yhat = tf.nn.softmax(tf.matmul(h1, w_soft) + b_soft)
+        u_soft = tf.matmul(h1, w_soft) + b_soft
+        yhat = tf.nn.softmax(u_soft)
         predict = tf.argmax(yhat, axis=1)
+
+        tf.add_to_collection("u1", u1)
+        tf.add_to_collection("act1", act1)
+        tf.add_to_collection("u_soft", u_soft)
+        tf.add_to_collection("yhat", yhat)
+        tf.add_to_collection("predict", predict)
 
         # Backward propagation
         cost = tf.reduce_mean(-tf.reduce_sum(y * tf.log(yhat), reduction_indices=[1]))
