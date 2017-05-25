@@ -34,7 +34,6 @@ def main():
         train_X, test_X, train_y, test_y, train_fn, test_fn = one_layer_2objects_train.get_data()
         # Layer's sizes
         x_size = train_X.shape[1]  # Number of input nodes
-        h_size = 100  # Number of hidden nodes
         y_size = train_y.shape[1]  # Number of outcomes
 
         # Symbols
@@ -42,8 +41,8 @@ def main():
         y = tf.placeholder("float", shape=[None, y_size], name="y")
 
         # Weight initializations
-        w_hidden = tf.get_collection(tf.GraphKeys.VARIABLES, "w_hidden")[0]
-        w_soft = tf.get_collection(tf.GraphKeys.VARIABLES, "w_softmax")[0]
+        w_hidden = tf.get_collection(tf.GraphKeys.VARIABLES, "w1")[0]
+        w_soft = tf.get_collection(tf.GraphKeys.VARIABLES, "w_soft")[0]
 
         # Forward propagation
         yhat, h = one_layer_2objects_train.forwardprop(X, w_hidden, w_soft)
