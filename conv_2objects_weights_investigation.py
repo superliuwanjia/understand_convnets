@@ -58,6 +58,7 @@ def main():
 
         # visualize weights
         w1_val = sess.run(w1)
+        import pdb; pdb.set_trace()
         if not os.path.exists("saved_model"):
             os.mkdir("saved_model")
         save_images([w1_val[i,:,:,:] for i in range(w1_val.shape[0])], \
