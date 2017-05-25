@@ -30,7 +30,7 @@ def forwardprop(X, w_soft):
     """
     Forward-propagation.
     """
-    yhat = tf.matmul(X, w_soft)
+    yhat = tf.nn.softmax(tf.matmul(X, w_soft))
     return yhat
 
 
