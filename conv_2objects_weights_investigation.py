@@ -33,7 +33,7 @@ def main():
             saver.restore(sess, model)
             print "Session loaded."
 
-            train_X, test_X, train_y, test_y, train_fn, test_fn = conv_2objects_train.get_data()
+            train_X, test_X, train_y, test_y, train_fn, test_fn, dec_b = conv_2objects_train.get_data()
             # Layer's sizes
             x_size = train_X.shape[1]  # Number of input nodes
             y_size = train_y.shape[1]  # Number of outcomes
