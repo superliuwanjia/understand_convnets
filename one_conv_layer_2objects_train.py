@@ -115,14 +115,14 @@ def main():
     # first layer
     ks1 = [250, 250, 1]
     nf1 = 32
-    h_size = nf1 * (input_shape[0] - ks1[0] + 1) * (input_shape[1] - ks1[1] + 1) / 4  # Number of hidden nodes
+    h_size = nf1 * (input_shape[0] - ks1[0] + 1) * (input_shape[1] - ks1[1] + 1)  # Number of hidden nodes
     w_conv1 = init_weights([ks1[0], ks1[1], ks1[2], nf1], name="w1")
     b_conv1 = init_bias([nf1], name="b1")
 
     act1 = tf.nn.relu(tf.nn.conv2d(X_image, w_conv1, strides=[1, 1, 1, 1], padding='VALID') + b_conv1)
-    h1 = tf.nn.max_pool(act1, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='SAME')
+    # h1 = tf.nn.max_pool(act1, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='SAME')
 
-    h1 = tf.reshape(h1, [-1, h_size])
+    h1 = tf.reshape(act1, [-1, h_size])
 
     # Weight initializations
     w_soft = init_weights([h_size, y_size], "w_soft")
