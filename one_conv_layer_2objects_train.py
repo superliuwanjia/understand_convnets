@@ -135,8 +135,8 @@ def main():
         # reshape the input image
         # x_image = tf.reshape(x, [-1, 250, 250, 1])
         # first layer
-        W_conv1 = weight_variable([250*250, 1000])
-        b_conv1 = bias_variable([1000])
+        W_conv1 = weight_variable([250*250, 10])
+        b_conv1 = bias_variable([10])
 
         # h_conv1 = tf.nn.relu(conv2d(x_image, W_conv1) + b_conv1)
         # h_pool1 = max_pool_2x2(h_conv1)
@@ -145,14 +145,14 @@ def main():
         h_pool1_flat = tf.nn.relu(tf.matmul(x, W_conv1) + b_conv1)
 
         # dropout
-        keep_prob = tf.placeholder(tf.float32)
-        h_fc1_drop = tf.nn.dropout(h_pool1_flat, keep_prob)
+        # keep_prob = tf.placeholder(tf.float32)
+        # h_fc1_drop = tf.nn.dropout(h_fc1, keep_prob)
 
         # softmax
-        W_fc2 = weight_variable([1000, 2])
+        W_fc2 = weight_variable([10, 2])
         b_fc2 = bias_variable([2])
 
-        y_conv = tf.nn.softmax(tf.matmul(h_fc1_drop, W_fc2) + b_fc2)
+        y_conv = tf.nn.softmax(tf.matmul(h_pool1_flat, W_fc2) + b_fc2)
 
         # setup training
         cross_entropy = tf.reduce_mean(-tf.reduce_sum(y_ * tf.log(y_conv), reduction_indices=[1]))
@@ -182,7 +182,7 @@ def main():
         for i in range(len(train_X) / bs):
             if i % 1 == 0:
                 train_accuracy = accuracy.eval(feed_dict={
-                    x: train_X[bs * i: bs * i + bs], y_: train_y[bs * i: bs * i + bs], keep_prob: 1.0})
+                    x: train_X[bs * i: bs * i + bs], y_: train_y[bs * i: bs * i + bs]})
                 print("step %d, training accuracy %g" % (epoch*len(train_X) / bs + i, train_accuracy))
 
                 # Update the events file.
@@ -194,12 +194,12 @@ def main():
                 checkpoint_file = os.path.join(train_dir, 'checkpoint')
                 saver.save(sess, checkpoint_file, global_step=i)
 
-            train_step.run(feed_dict={x: train_X[bs * i: bs * i + bs], y_: train_y[bs * i: bs * i + bs], keep_prob: 0.5})
+            train_step.run(feed_dict={x: train_X[bs * i: bs * i + bs], y_: train_y[bs * i: bs * i + bs]})
 
-        print("test accuracy at epoach %d: %g" % (epoch, accuracy.eval(feed_dict={x: test_X, y_: test_y, keep_prob: 1.0})))
+        print("test accuracy at epoach %d: %g" % (epoch, accuracy.eval(feed_dict={x: test_X, y_: test_y})))
 
     # print test error
-    print("Final test accuracy %g" % accuracy.eval(feed_dict={x: test_X, y_: test_y, keep_prob: 1.0}))
+    print("Final test accuracy %g" % accuracy.eval(feed_dict={x: test_X, y_: test_y}))
 
 if __name__ == '__main__':
     main()
