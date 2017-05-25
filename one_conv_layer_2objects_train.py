@@ -147,13 +147,13 @@ def main():
             updates.run(feed_dict={X: train_X[bs * i: bs * i + bs], y: train_y[bs * i: bs * i + bs]})
 
         test_accuracy = accuracy.eval(feed_dict={
-                    X: test_X[bs * i: bs * i + bs], y: test_y[bs * i: bs * i + bs]})
+                    X: test_X, y: test_y})
 
         print("test accuracy at epoach %d: %g" % (epoch,test_accuracy))
 
     # print test error
     test_accuracy = accuracy.eval(feed_dict={
-        X: test_X[bs * i: bs * i + bs], y: test_y[bs * i: bs * i + bs]})
+        X: test_X, y: test_y})
 
     print("Final test accuracy: %g" % test_accuracy)
 
