@@ -141,7 +141,7 @@ def main():
             if i % 1 == 0:
                 # train_accuracy = sess.run(accuracy, feed_dict={X: train_X, y: train_y})
                 train_accuracy = accuracy.eval(feed_dict={
-                    X: train_X[bs * i: bs * i + bs], y: train_y[bs * i: bs * i + bs]})
+                    X: train_X, y: train_y})
                 print("step %d, training accuracy %g" % (epoch * len(train_X) / bs + i, train_accuracy))
 
             updates.run(feed_dict={X: train_X[bs * i: bs * i + bs], y: train_y[bs * i: bs * i + bs]})
