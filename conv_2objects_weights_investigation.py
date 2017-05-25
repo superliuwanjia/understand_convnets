@@ -58,11 +58,11 @@ def main():
 
         # visualize weights
         w1_val = sess.run(w1)
-        import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         if not os.path.exists("saved_model"):
             os.mkdir("saved_model")
-        save_images([w1_val[i,:,:,:] for i in range(w1_val.shape[0])], \
-                    [str(i) + ".png" for i in range(w1_val.shape[0])], os.path.join(viz_path, "w1"), dim=(32,32,1))
+        save_images([w1_val[:,:,:,i] for i in range(w1_val.shape[-1])], \
+                    [str(i) + ".png" for i in range(w1_val.shape[-1])], os.path.join(viz_path, "w1"), dim=(32,32,1))
 
         # w_soft_val = sess.run(w_soft)
         # save_images([w_soft_val[:, i] for i in range(w_soft_val.shape[1])], \
