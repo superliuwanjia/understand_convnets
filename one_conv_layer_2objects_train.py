@@ -106,35 +106,36 @@ def main():
     x_size = train_X.shape[1]  # Number of input nodes
     y_size = train_y.shape[1]  # Number of outcomes
 
-    # Symbols
-    X = tf.placeholder("float", shape=[None, x_size], name="x")
-    y = tf.placeholder("float", shape=[None, y_size], name="y")
+    with tf.device("/gpu:4"):
+        # Symbols
+        X = tf.placeholder("float", shape=[None, x_size], name="x")
+        y = tf.placeholder("float", shape=[None, y_size], name="y")
 
-    # reshape the input image
-    X_image = tf.reshape(X, [-1, 250, 250, 1])
-    # first layer
-    ks1 = [249, 249, 1]
-    nf1 = 1000
-    h_size = nf1 * (input_shape[0] - ks1[0] + 1) * (input_shape[1] - ks1[1] + 1)  # Number of hidden nodes
-    w_conv1 = init_weights([ks1[0], ks1[1], ks1[2], nf1], name="w1")
-    b_conv1 = init_bias([nf1], name="b1")
+        # reshape the input image
+        X_image = tf.reshape(X, [-1, 250, 250, 1])
+        # first layer
+        ks1 = [249, 249, 1]
+        nf1 = 1000
+        h_size = nf1 * (input_shape[0] - ks1[0] + 1) * (input_shape[1] - ks1[1] + 1)  # Number of hidden nodes
+        w_conv1 = init_weights([ks1[0], ks1[1], ks1[2], nf1], name="w1")
+        b_conv1 = init_bias([nf1], name="b1")
 
-    act1 = tf.nn.relu(tf.nn.conv2d(X_image, w_conv1, strides=[1, 1, 1, 1], padding='VALID') + b_conv1)
-    # h1 = tf.nn.max_pool(act1, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='SAME')
+        act1 = tf.nn.relu(tf.nn.conv2d(X_image, w_conv1, strides=[1, 1, 1, 1], padding='VALID') + b_conv1)
+        # h1 = tf.nn.max_pool(act1, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='SAME')
 
-    h1 = tf.reshape(act1, [-1, h_size])
+        h1 = tf.reshape(act1, [-1, h_size])
 
-    # Weight initializations
-    w_soft = init_weights([h_size, y_size], "w_soft")
-    b_soft = init_bias([y_size], name="b_soft")
+        # Weight initializations
+        w_soft = init_weights([h_size, y_size], "w_soft")
+        b_soft = init_bias([y_size], name="b_soft")
 
-    # Forward propagation
-    yhat = tf.nn.softmax(tf.matmul(h1, w_soft) + b_soft)
-    predict = tf.argmax(yhat, axis=1)
+        # Forward propagation
+        yhat = tf.nn.softmax(tf.matmul(h1, w_soft) + b_soft)
+        predict = tf.argmax(yhat, axis=1)
 
-    # Backward propagation
-    cost = tf.reduce_mean(-tf.reduce_sum(y * tf.log(yhat), reduction_indices=[1]))
-    updates = tf.train.GradientDescentOptimizer(0.01).minimize(cost)
+        # Backward propagation
+        cost = tf.reduce_mean(-tf.reduce_sum(y * tf.log(yhat), reduction_indices=[1]))
+        updates = tf.train.GradientDescentOptimizer(0.01).minimize(cost)
 
     # Saver
     saver = tf.train.Saver()
