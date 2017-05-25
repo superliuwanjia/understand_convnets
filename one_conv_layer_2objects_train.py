@@ -123,8 +123,8 @@ def main():
     train_X, test_X, train_y, test_y, train_fn, test_fn = get_data()
 
     # Layer's sizes
-    # x_size = train_X.shape[1] # Number of input nodes
-    # y_size = train_y.shape[1]  # Number of outcomes
+    x_size = train_X.shape[1] # Number of input nodes
+    y_size = train_y.shape[1]  # Number of outcomes
 
     sess = tf.InteractiveSession()
 
@@ -132,38 +132,19 @@ def main():
         x = tf.placeholder(tf.float32, shape=[None, 250*250])
         y_ = tf.placeholder(tf.float32, shape=[None, 2])
 
-        # reshape the input image
-        # x_image = tf.reshape(x, [-1, 250, 250, 1])
-        # first layer
-        # W_conv1 = weight_variable([250*250, 2])
-        # b_conv1 = bias_variable([2])
-
-        # h_conv1 = tf.nn.relu(conv2d(x_image, W_conv1) + b_conv1)
-        # h_pool1 = max_pool_2x2(h_conv1)
-
-        # h_pool1_flat = tf.reshape(h_conv1, [-1, 246 * 246 * 32])
-        # h_pool1_flat = tf.matmul(x, W_conv1) + b_conv1
-
-        # dropout
-        # keep_prob = tf.placeholder(tf.float32)
-        # h_fc1_drop = tf.nn.dropout(h_fc1, keep_prob)
-
         # softmax
         W_fc2 = weight_variable([250*250, 2])
         b_fc2 = bias_variable([2])
 
-        y_conv = tf.nn.softmax(tf.matmul(x, W_fc2) + b_fc2)
+        # y_conv = tf.nn.softmax(tf.matmul(x, W_fc2) + b_fc2)
+        y_conv = tf.matmul(x, W_fc2) + b_fc2
 
         # setup training
-        cross_entropy = tf.reduce_mean(-tf.reduce_sum(y_ * tf.log(y_conv), reduction_indices=[1]))
+        # cross_entropy = tf.reduce_mean(-tf.reduce_sum(y_ * tf.log(y_conv), reduction_indices=[1]))
+        cross_entropy = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=y_, logits=y_conv))
         train_step = tf.train.GradientDescentOptimizer(0.01).minimize(cross_entropy)
         correct_prediction = tf.equal(tf.argmax(y_conv, 1), tf.argmax(y_, 1))
         accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
-
-        # Add a scalar summary for the snapshot loss.
-        # tf.summary.scalar(cross_entropy.op.name, cross_entropy)
-        # Build the summary operation based on the TF collection of Summaries.
-        # summary_op = tf.summary.merge_all()
 
         # Add the variable initializer Op.
         init = tf.initialize_all_variables()
