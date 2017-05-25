@@ -119,7 +119,8 @@ def main():
     predict = tf.argmax(yhat, axis=1)
 
     # Backward propagation
-    cost = tf.nn.softmax_cross_entropy_with_logits(labels=y, logits=yhat)
+    # cost = tf.nn.softmax_cross_entropy_with_logits(labels=y, logits=yhat)
+    cost = tf.reduce_mean(-tf.reduce_sum(y * tf.log(yhat), reduction_indices=[1]))
     updates = tf.train.GradientDescentOptimizer(0.01).minimize(cost)
     correct_prediction = tf.equal(tf.argmax(yhat, 1), tf.argmax(y, 1))
     accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
@@ -141,7 +142,7 @@ def main():
             if i % 1 == 0:
                 # train_accuracy = sess.run(accuracy, feed_dict={X: train_X, y: train_y})
                 train_accuracy = accuracy.eval(feed_dict={
-                    X: train_X[bs * i: bs * i + bs], y: train_y[bs * i: bs * i + bs]})
+                    X: train_X, y: train_y})
                 print("step %d, training accuracy %g" % (epoch * len(train_X) / bs + i, train_accuracy))
 
             updates.run(feed_dict={X: train_X[bs * i: bs * i + bs], y: train_y[bs * i: bs * i + bs]})
