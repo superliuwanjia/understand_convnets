@@ -11,7 +11,9 @@ tf.set_random_seed(RANDOM_SEED)
 
 model = os.path.join("saved_model", "conv_2objects_Grey_best.ckpt")
 graph = os.path.join("saved_model", "conv_2objects_Grey_best.ckpt.meta")
-viz_path = "./visualizations"
+viz_path = "visualizations"
+if not os.path.exists(viz_path):
+    os.mkdir(viz_path)
 ks1 = [32, 32, 1]
 
 
