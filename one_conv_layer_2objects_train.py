@@ -97,35 +97,35 @@ def main():
     y_size = train_y.shape[1]  # Number of outcomes
 
     sess = tf.InteractiveSession()
+    with tf.device("/gpu:0"):
+        # Symbols
+        X = tf.placeholder("float", shape=[None, x_size], name="x")
+        y = tf.placeholder("float", shape=[None, y_size], name="y")
 
-    # Symbols
-    X = tf.placeholder("float", shape=[None, x_size], name="x")
-    y = tf.placeholder("float", shape=[None, y_size], name="y")
+        # Weight initializations
+        w_soft = init_weights((x_size, y_size), "w_soft")
+        w_soft_init = init_weights((x_size, y_size), "w_soft_init")
+        w_soft_diff = init_weights((x_size, y_size), "w_soft_diff")
 
-    # Weight initializations
-    w_soft = init_weights((x_size, y_size), "w_soft")
-    w_soft_init = init_weights((x_size, y_size), "w_soft_init")
-    w_soft_diff = init_weights((x_size, y_size), "w_soft_diff")
+        # record the decision boundary
+        dec_b = tf.Variable(dec_b, name="dec_b")
 
-    # record the decision boundary
-    dec_b = tf.Variable(dec_b, name="dec_b")
+        # weights noise cancelling
+        Op_record_init = w_soft_init.assign(w_soft)
+        Op_diff = w_soft_diff.assign(w_soft - w_soft_init)
 
-    # weights noise cancelling
-    Op_record_init = w_soft_init.assign(w_soft)
-    Op_diff = w_soft_diff.assign(w_soft - w_soft_init)
+        # Forward propagation
+        yhat = forwardprop(X, w_soft)
+        predict = tf.argmax(yhat, axis=1)
 
-    # Forward propagation
-    yhat = forwardprop(X, w_soft)
-    predict = tf.argmax(yhat, axis=1)
+        # Backward propagation
+        # cost = tf.nn.softmax_cross_entropy_with_logits(labels=y, logits=yhat)
+        cost = tf.reduce_mean(-tf.reduce_sum(y * tf.log(yhat), reduction_indices=[1]))
+        updates = tf.train.GradientDescentOptimizer(0.01).minimize(cost)
+        correct_prediction = tf.equal(tf.argmax(yhat, 1), tf.argmax(y, 1))
+        accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 
-    # Backward propagation
-    # cost = tf.nn.softmax_cross_entropy_with_logits(labels=y, logits=yhat)
-    cost = tf.reduce_mean(-tf.reduce_sum(y * tf.log(yhat), reduction_indices=[1]))
-    updates = tf.train.GradientDescentOptimizer(0.01).minimize(cost)
-    correct_prediction = tf.equal(tf.argmax(yhat, 1), tf.argmax(y, 1))
-    accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
-
-    init = tf.initialize_all_variables()
+        init = tf.initialize_all_variables()
 
     # Create a saver for writing training checkpoints.
     saver = tf.train.Saver()
