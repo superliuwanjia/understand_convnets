@@ -74,9 +74,7 @@ def main():
         
         # visualize weights
         w = sess.run(w_hidden)
-        save_images([w[:i][0:w.shape[0]-1] for i in w.shape[1]], \
-                    [str(i) for i in range(w.shape[1]), os.path.join(viz_path, "weights"))  
-
+        save_images([w[:i][0:w.shape[0]-1] for i in w.shape[1]], [str(i) for i in range(w.shape[1]), os.path.join(viz_path, "weights"))
         # visualize class templates
   
 if __name__ == "__main__":
