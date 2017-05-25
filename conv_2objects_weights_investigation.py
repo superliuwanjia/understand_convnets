@@ -16,6 +16,7 @@ ks1 = [32, 32, 1]
 
 
 def save_images(images, fns, path, dim=(250, 250, 3)):
+    import pdb; pdb.set_trace()
     if not os.path.exists(path):
         os.mkdir(path)
 
@@ -55,12 +56,14 @@ def main():
 
         # visualize weights
         w1_val = sess.run(w1)
+        if not os.path.exists("saved_model"):
+            os.mkdir("saved_model")
         save_images([w1_val[i,:,:,:] for i in range(w1_val.shape[0])], \
-                    [str(i) + ".png" for i in range(w1_val.shape[0])], os.path.join(viz_path, "w1"))
+                    [str(i) + ".png" for i in range(w1_val.shape[0])], os.path.join(viz_path, "w1"), dim=(32,32,1))
 
-        w_soft_val = sess.run(w_soft)
-        save_images([w_soft_val[:, i] for i in range(w_soft_val.shape[1])], \
-                    [str(i) + ".png" for i in range(w_soft_val.shape[1])], os.path.join(viz_path, "w_soft"))
+        # w_soft_val = sess.run(w_soft)
+        # save_images([w_soft_val[:, i] for i in range(w_soft_val.shape[1])], \
+        #             [str(i) + ".png" for i in range(w_soft_val.shape[1])], os.path.join(viz_path, "w_soft"), dim=(32,32,1))
 
         # save_images([np.matmul(w, soft)[:, i][0:w.shape[0] - 1, ] for i in range(soft.shape[1])], \
         #             [str(i) + ".png" for i in range(soft.shape[1])], os.path.join(viz_path, "w*s"))
