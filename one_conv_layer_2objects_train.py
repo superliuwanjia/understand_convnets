@@ -92,8 +92,9 @@ def get_data():
 
     # Prepend the column of 1s for bias
     num_exps, img_dim = X.shape
-    X_bias = np.ones((num_exps, img_dim + 1))
-    X_bias[:, 1:] = X
+    # X_bias = np.ones((num_exps, img_dim + 1))
+    # X_bias[:, 1:] = X
+    X_bias = X
 
     # Convert into one-hot vectors
     num_labels = len(np.unique(Label))
