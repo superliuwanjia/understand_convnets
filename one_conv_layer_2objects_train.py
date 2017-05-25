@@ -54,7 +54,7 @@ def bias_variable(shape):
     Cout: the number of filters
     :return: a tensor variable for biases with initial values
     '''
-    initial = tf.constant(0.1, shape=shape)
+    initial = tf.constant(0., shape=shape)
     return tf.Variable(initial)
 
 def conv2d(x, W):
