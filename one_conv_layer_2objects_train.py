@@ -144,19 +144,15 @@ def main():
         # h_pool1_flat = tf.reshape(h_conv1, [-1, 246 * 246 * 32])
         h_pool1_flat = tf.nn.relu(tf.matmul(x, W_conv1) + b_conv1)
 
-        W_conv2 = weight_variable([1000, 10])
-        b_conv2 = bias_variable([10])
-        h_pool2_flat = tf.nn.relu(tf.matmul(h_pool1_flat, W_conv2) + b_conv2)
-
         # dropout
         # keep_prob = tf.placeholder(tf.float32)
         # h_fc1_drop = tf.nn.dropout(h_fc1, keep_prob)
 
         # softmax
-        W_fc2 = weight_variable([10, 2])
+        W_fc2 = weight_variable([1000, 2])
         b_fc2 = bias_variable([2])
 
-        y_conv = tf.nn.softmax(tf.matmul(h_pool2_flat, W_fc2) + b_fc2)
+        y_conv = tf.nn.softmax(tf.matmul(h_pool1_flat, W_fc2) + b_fc2)
 
         # setup training
         cross_entropy = tf.reduce_mean(-tf.reduce_sum(y_ * tf.log(y_conv), reduction_indices=[1]))
