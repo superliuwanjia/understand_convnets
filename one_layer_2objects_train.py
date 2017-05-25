@@ -16,10 +16,11 @@ from sklearn import datasets
 from sklearn.model_selection import train_test_split
 
 bs = 32
-epochs = 1
-num_hidden = 100
-image_mode = "RGB"
-saved_model = "1layer_mlp_2objects_RGB.ckpt"
+epochs = 10
+num_hidden = 1000
+image_mode = "L"
+saved_model = "1layer_mlp_2objects_L_random_normal_0_1e-8.ckpt"
+init_std = 1e-8
 RANDOM_SEED = 42
 train_test_ratio = 0.8
 
@@ -32,7 +33,7 @@ image_folder = os.path.join("images/2objects/")
 
 def init_weights(shape, name):
     """ Weight initialization """
-    weights = tf.random_normal(shape, stddev=1e-8)
+    weights = tf.random_normal(shape, stddev=init_std)
     #weights = tf.zeros(shape)
     return tf.Variable(weights, name=name)
 
@@ -42,9 +43,10 @@ def forwardprop(X, w_hidden, w_soft):
     Forward-propagation.
     IMPORTANT: yhat is not softmax since TensorFlow's softmax_cross_entropy_with_logits() does that internally.
     """
-    h = tf.nn.relu(tf.matmul(X, w_hidden))  # The \sigma function
+    h_before_relu = tf.matmul(X,w_hidden)
+    h = tf.nn.relu(h_before_relu)  # The \sigma function
     yhat = tf.matmul(h, w_soft)  # The \varphi function
-    return yhat, h
+    return yhat, h, h_before_relu
 
 
 def get_data():
@@ -105,7 +107,7 @@ def main():
         w_soft = init_weights((h_size, y_size), "w_softmax")
 
         # Forward propagation
-        yhat, h = forwardprop(X, w_hidden, w_soft)
+        yhat, h, u = forwardprop(X, w_hidden, w_soft)
         predict = tf.argmax(yhat, axis=1)
 
         # Backward propagation
