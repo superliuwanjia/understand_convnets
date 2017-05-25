@@ -121,6 +121,8 @@ def main():
     # Backward propagation
     cost = tf.nn.softmax_cross_entropy_with_logits(labels=y, logits=yhat)
     updates = tf.train.GradientDescentOptimizer(0.01).minimize(cost)
+    correct_prediction = tf.equal(tf.argmax(yhat, 1), tf.argmax(y, 1))
+    accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 
     init = tf.initialize_all_variables()
 
@@ -137,17 +139,17 @@ def main():
     for epoch in range(epochs):
         for i in range(len(train_X) / bs):
             if i % 1 == 0:
-                train_accuracy = np.mean(np.argmax(train_y, axis=1) == sess.run(predict, feed_dict={X: train_X, y: train_y}))
+                train_accuracy = sess.run(accuracy, feed_dict={X: train_X, y: train_y})
                 print("step %d, training accuracy %g" % (epoch * len(train_X) / bs + i, train_accuracy))
 
             updates.run(feed_dict={X: train_X[bs * i: bs * i + bs], y: train_y[bs * i: bs * i + bs]})
 
-        test_accuracy = np.mean(np.argmax(test_y, axis=1) == sess.run(predict, feed_dict={X: test_X, y: test_y}))
+        test_accuracy = sess.run(accuracy, feed_dict={X: test_X, y: test_y})
 
         print("test accuracy at epoach %d: %g" % (epoch,test_accuracy))
 
     # print test error
-    test_accuracy = np.mean(np.argmax(test_y, axis=1) == sess.run(predict, feed_dict={X: test_X, y: test_y}))
+    test_accuracy = sess.run(accuracy, feed_dict={X: test_X, y: test_y})
 
     print("Final test accuracy: %g" % test_accuracy)
 
