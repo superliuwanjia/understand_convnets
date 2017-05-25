@@ -121,7 +121,8 @@ def main():
         w_conv1 = init_weights([ks1[0], ks1[1], ks1[2], nf1], name="w1")
         # b_conv1 = init_bias([nf1], name="b1")
 
-        act1 = tf.nn.relu(tf.nn.conv2d(X_image, w_conv1, strides=[1, 1, 1, 1], padding='VALID'))
+        u1 = tf.nn.conv2d(X_image, w_conv1, strides=[1, 1, 1, 1], padding='VALID')
+        act1 = tf.nn.relu(u1)
         # h1 = tf.nn.max_pool(act1, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='SAME')
 
         h1 = tf.reshape(act1, [-1, h_size])

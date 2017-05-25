@@ -4,7 +4,7 @@ import scipy.misc
 import tensorflow as tf
 import numpy as np
 
-import one_layer_2objects_train
+import conv_2objects_train
 
 RANDOM_SEED = 42
 tf.set_random_seed(RANDOM_SEED)
@@ -31,7 +31,7 @@ def main():
         saver.restore(sess, model)
         print "Session loaded."
 
-        train_X, test_X, train_y, test_y, train_fn, test_fn = one_layer_2objects_train.get_data()
+        train_X, test_X, train_y, test_y, train_fn, test_fn = conv_2objects_train.get_data()
         # Layer's sizes
         x_size = train_X.shape[1]  # Number of input nodes
         y_size = train_y.shape[1]  # Number of outcomes
@@ -45,7 +45,7 @@ def main():
         w_soft = tf.get_collection(tf.GraphKeys.VARIABLES, "w_soft")[0]
 
         # Forward propagation
-        yhat, h = one_layer_2objects_train.forwardprop(X, w_hidden, w_soft)
+        yhat, h = conv_2objects_train.forwardprop(X, w_hidden, w_soft)
         predict = tf.argmax(yhat, axis=1)
 
         # Relu state
