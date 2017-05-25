@@ -1,86 +1,54 @@
-# Implementation of a simple MLP network with one hidden layer. Tested on the iris data set.
-# Requires: numpy, sklearn>=0.18.1, tensorflow>=1.0
-
-# NOTE: In order to make the code simple, we rewrite x * W_1 + b_1 = x' * W_1'
-# where x' = [x | 1] and W_1' is the matrix W_1 appended with a new row with elements b_1's.
-# Similarly, for h * W_2 + b_2
 import os
 import random
-
 import tensorflow as tf
 import numpy as np
 from scipy import misc
 import glob
-import time
-from sklearn import datasets
-from sklearn.model_selection import train_test_split
 
 bs = 32
-epochs = 5
+epochs = 4
 image_mode = "L"
-saved_model = "1layer_conv_2objects_RGB.ckpt"
+saved_model = "softmax_2objects_RGB.ckpt"
 RANDOM_SEED = 42
 train_test_ratio = 0.8
-input_shape = [250, 250, 1]
 
 random.seed(RANDOM_SEED)
 tf.set_random_seed(RANDOM_SEED)
 np.random.seed(RANDOM_SEED)
 
-image_folder = os.path.join("./images/2objects/")
+image_folder = os.path.join("../images/2objects/")
+
 
 def init_weights(shape, name):
     """ Weight initialization """
-    weights = tf.random_normal(shape, stddev=0.1)
+    weights = tf.zeros(shape)
+    # weights = tf.random_normal(shape, stddev=1e-8)
     return tf.Variable(weights, name=name)
 
-def weight_variable(shape):
-    '''
-    Initialize weights
-    :param shape: shape of weights, e.g. [w, h ,Cin, Cout] where
-    w: width of the filters
-    h: height of the filters
-    Cin: the number of the channels of the filters
-    Cout: the number of filters
-    :return: a tensor variable for weights with initial values
-    '''
-    initial = tf.random_normal(shape, stddev=0.001)
-    return tf.Variable(initial)
 
-def bias_variable(shape):
-    '''
-    Initialize biases
-    :param shape: shape of biases, e.g. [Cout] where
-    Cout: the number of filters
-    :return: a tensor variable for biases with initial values
-    '''
-    initial = tf.constant(0., shape=shape)
-    return tf.Variable(initial)
+def forwardprop(X, w_soft):
+    """
+    Forward-propagation.
+    """
+    yhat = tf.matmul(X, w_soft)
+    return yhat
 
-def conv2d(x, W):
-    '''
-    Perform 2-D convolution
-    :param x: input tensor of size [N, W, H, Cin] where
-    N: the number of images
-    W: width of images
-    H: height of images
-    Cin: the number of channels of images
-    :param W: weight tensor [w, h, Cin, Cout]
-    w: width of the filters
-    h: height of the filters
-    Cin: the number of the channels of the filters = the number of channels of images
-    Cout: the number of filters
-    :return: a tensor of features extracted by the filters, a.k.a. the results after convolution
-    '''
-    return tf.nn.conv2d(x, W, strides=[1, 1, 1, 1], padding='VALID')
 
-def max_pool_2x2(x):
-    '''
-    Perform non-overlapping 2-D maxpooling on 2x2 regions in the input data
-    :param x: input data
-    :return: the results of maxpooling (max-marginalized + downsampling)
-    '''
-    return tf.nn.max_pool(x, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='SAME')
+def decision_boundary(X, Label):
+    """
+    average(class0) - average(class1)
+	"""
+    accu_0 = np.zeros(X[0, :].shape)
+    accu_1 = np.zeros(X[0, :].shape)
+    for i in range(Label.shape[0]):
+        if Label[i] == 0:
+            accu_0 += X[i, :]
+        else:
+            accu_1 += X[i, :]
+    accu_0 = accu_0 / float(360)
+    accu_1 = accu_1 / float(360)
+    return accu_0 - accu_1
+
 
 def get_data():
     """ Read the data set and split them into training and test sets """
@@ -90,59 +58,69 @@ def get_data():
     for image_path in glob.glob(os.path.join(image_folder, "*.png")):
         fns.append(os.path.basename(image_path))
         Label.append(int(os.path.basename(image_path).split("_")[0]))
-        image = X.append(misc.imread(image_path, mode=image_mode).flatten())
-    X = np.array(X) / 255
+        X.append(misc.imread(image_path, mode=image_mode).flatten())
+    X = np.array(X) / 225
     Label = np.array(Label)
-    print X.shape
-    print Label.shape
 
+    print (X.shape)
+    print (Label.shape)
+
+    dec_b = decision_boundary(X, Label)
+
+    # Prepend the column of 1s for bias
     num_exps, img_dim = X.shape
-    all_X = X
+    X_bias = np.ones((num_exps, img_dim + 1))
+    X_bias[:, 1:] = X
 
     # Convert into one-hot vectors
     num_labels = len(np.unique(Label))
+    Y_onehot = np.eye(num_labels)[Label]
 
-    all_Y = np.eye(num_labels)[Label]  # One liner trick!
-
-    all_index = range(X.shape[0])
-    random.shuffle(all_index)
-
-    all_X = all_X[all_index]
-    all_Y = all_Y[all_index]
+    # shuffle X
+    all_index = np.arange(X.shape[0])
+    np.random.shuffle(all_index)
+    X_bias = X_bias[all_index]
+    Y_onehot = Y_onehot[all_index]
 
     index_cutoff = int(X.shape[0] * train_test_ratio)
-
-    return all_X[0:index_cutoff, :], all_X[index_cutoff:, :], \
-           all_Y[0:index_cutoff, :], all_Y[index_cutoff:, :], \
+    return X_bias[0:index_cutoff, :], X_bias[index_cutoff:, :], \
+           Y_onehot[0:index_cutoff, :], Y_onehot[index_cutoff:, :], \
            fns[0:index_cutoff], fns[index_cutoff:], \
+           dec_b
+
 
 def main():
-    train_dir = './results/'
-
-    # load the data
-    train_X, test_X, train_y, test_y, train_fn, test_fn = get_data()
+    train_X, test_X, train_y, test_y, train_fn, test_fn, dec_b = get_data()
 
     # Layer's sizes
-    x_size = train_X.shape[1] # Number of input nodes
+    x_size = train_X.shape[1]  # Number of input nodes
     y_size = train_y.shape[1]  # Number of outcomes
 
-    with tf.device("/gpu:0"):
-        X = tf.placeholder(tf.float32, shape=[None, 250*250])
-        y = tf.placeholder(tf.float32, shape=[None, 2])
+    # Symbols
+    X = tf.placeholder("float", shape=[None, x_size], name="x")
+    y = tf.placeholder("float", shape=[None, y_size], name="y")
 
-        # softmax
-        W_fc2 = weight_variable([250*250, 2])
-        b_fc2 = bias_variable([2])
+    # Weight initializations
+    w_soft = init_weights((x_size, y_size), "w_soft")
+    w_soft_init = init_weights((x_size, y_size), "w_soft_init")
+    w_soft_diff = init_weights((x_size, y_size), "w_soft_diff")
 
-        # y_conv = tf.nn.softmax(tf.matmul(x, W_fc2) + b_fc2)
-        yhat = tf.matmul(X, W_fc2) + b_fc2
-        predict = tf.argmax(yhat, axis=1)
+    # record the decision boundary
+    dec_b = tf.Variable(dec_b, name="dec_b")
 
-        # setup training
-        # cross_entropy = tf.reduce_mean(-tf.reduce_sum(y_ * tf.log(y_conv), reduction_indices=[1]))
-        cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=y, logits=yhat))
-        updates = tf.train.GradientDescentOptimizer(0.01).minimize(cost)
+    # weights noise cancelling
+    Op_record_init = w_soft_init.assign(w_soft)
+    Op_diff = w_soft_diff.assign(w_soft - w_soft_init)
 
+    # Forward propagation
+    yhat = forwardprop(X, w_soft)
+    predict = tf.argmax(yhat, axis=1)
+
+    # Backward propagation
+    cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=y, logits=yhat))
+    updates = tf.train.GradientDescentOptimizer(0.01).minimize(cost)
+
+    # Saver
     saver = tf.train.Saver()
 
     # Run SGD
@@ -170,6 +148,7 @@ def main():
     print("Model saved in file: %s" % save_path)
 
     sess.close()
+
 
 if __name__ == '__main__':
     main()
