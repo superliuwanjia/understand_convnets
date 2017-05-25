@@ -11,6 +11,7 @@ image_mode = "L"
 saved_model = "softmax_2objects_RGB.ckpt"
 RANDOM_SEED = 42
 train_test_ratio = 0.8
+input_shape = [250, 250, 1]
 
 random.seed(RANDOM_SEED)
 tf.set_random_seed(RANDOM_SEED)
@@ -21,8 +22,8 @@ image_folder = os.path.join("./images/2objects/")
 
 def init_weights(shape, name):
     """ Weight initialization """
-    weights = tf.zeros(shape)
-    # weights = tf.random_normal(shape, stddev=1e-8)
+    # weights = tf.zeros(shape)
+    weights = tf.random_normal(shape, stddev=1e-8)
     return tf.Variable(weights, name=name)
 
 def init_bias(shape):
@@ -109,12 +110,26 @@ def main():
     X = tf.placeholder("float", shape=[None, x_size], name="x")
     y = tf.placeholder("float", shape=[None, y_size], name="y")
 
+    # reshape the input image
+    X_image = tf.reshape(X, [-1, 250, 250, 1])
+    # first layer
+    ks1 = [5, 5, 1]
+    nf1 = 32
+    h_size = nf1 * (input_shape[0] - ks1[0] + 1) * (input_shape[1] - ks1[1] + 1) / 4  # Number of hidden nodes
+    w_conv1 = init_weights([ks1[0], ks1[1], ks1[2], nf1])
+    b_conv1 = init_bias([nf1])
+
+    act1 = tf.nn.relu(tf.nn.conv2d(X_image, w_conv1, strides=[1, 1, 1, 1], padding='VALID') + b_conv1)
+    h1 = tf.nn.max_pool(act1, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='SAME')
+
+    h1 = tf.reshape(h1, [-1, h_size])
+
     # Weight initializations
-    w_soft = init_weights([x_size, y_size], "w_soft")
+    w_soft = init_weights([h_size, y_size], "w_soft")
     b_soft = init_bias([y_size])
 
     # Forward propagation
-    yhat = tf.nn.softmax(tf.matmul(X, w_soft) + b_soft)
+    yhat = tf.nn.softmax(tf.matmul(h1, w_soft) + b_soft)
     predict = tf.argmax(yhat, axis=1)
 
     # Backward propagation
