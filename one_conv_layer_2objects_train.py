@@ -113,7 +113,7 @@ def main():
     # reshape the input image
     X_image = tf.reshape(X, [-1, 250, 250, 1])
     # first layer
-    ks1 = [5, 5, 1]
+    ks1 = [250, 250, 1]
     nf1 = 32
     h_size = nf1 * (input_shape[0] - ks1[0] + 1) * (input_shape[1] - ks1[1] + 1) / 4  # Number of hidden nodes
     w_conv1 = init_weights([ks1[0], ks1[1], ks1[2], nf1], name="w1")
