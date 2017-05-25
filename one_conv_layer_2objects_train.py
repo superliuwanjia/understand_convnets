@@ -16,7 +16,7 @@ random.seed(RANDOM_SEED)
 tf.set_random_seed(RANDOM_SEED)
 np.random.seed(RANDOM_SEED)
 
-image_folder = os.path.join("../images/2objects/")
+image_folder = os.path.join("./images/2objects/")
 
 
 def init_weights(shape, name):
