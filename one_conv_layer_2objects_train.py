@@ -128,7 +128,7 @@ def main():
 
     with tf.device("/gpu:0"):
         X = tf.placeholder(tf.float32, shape=[None, 250*250])
-        y_ = tf.placeholder(tf.float32, shape=[None, 2])
+        y = tf.placeholder(tf.float32, shape=[None, 2])
 
         # softmax
         W_fc2 = weight_variable([250*250, 2])
@@ -140,7 +140,7 @@ def main():
 
         # setup training
         # cross_entropy = tf.reduce_mean(-tf.reduce_sum(y_ * tf.log(y_conv), reduction_indices=[1]))
-        cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=y_, logits=yhat))
+        cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=y, logits=yhat))
         updates = tf.train.GradientDescentOptimizer(0.01).minimize(cost)
 
     saver = tf.train.Saver()
