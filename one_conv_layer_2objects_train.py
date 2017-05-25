@@ -135,14 +135,14 @@ def main():
         # reshape the input image
         # x_image = tf.reshape(x, [-1, 250, 250, 1])
         # first layer
-        W_conv1 = weight_variable([250*250, 2])
-        b_conv1 = bias_variable([2])
+        # W_conv1 = weight_variable([250*250, 2])
+        # b_conv1 = bias_variable([2])
 
         # h_conv1 = tf.nn.relu(conv2d(x_image, W_conv1) + b_conv1)
         # h_pool1 = max_pool_2x2(h_conv1)
 
         # h_pool1_flat = tf.reshape(h_conv1, [-1, 246 * 246 * 32])
-        h_pool1_flat = tf.matmul(x, W_conv1) + b_conv1
+        # h_pool1_flat = tf.matmul(x, W_conv1) + b_conv1
 
         # dropout
         # keep_prob = tf.placeholder(tf.float32)
@@ -152,7 +152,7 @@ def main():
         W_fc2 = weight_variable([2, 2])
         b_fc2 = bias_variable([2])
 
-        y_conv = tf.nn.softmax(tf.matmul(h_pool1_flat, W_fc2) + b_fc2)
+        y_conv = tf.nn.softmax(tf.matmul(x, W_fc2) + b_fc2)
 
         # setup training
         cross_entropy = tf.reduce_mean(-tf.reduce_sum(y_ * tf.log(y_conv), reduction_indices=[1]))
