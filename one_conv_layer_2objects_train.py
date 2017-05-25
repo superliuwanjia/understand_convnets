@@ -96,6 +96,8 @@ def main():
     x_size = train_X.shape[1]  # Number of input nodes
     y_size = train_y.shape[1]  # Number of outcomes
 
+    sess = tf.InteractiveSession()
+
     # Symbols
     X = tf.placeholder("float", shape=[None, x_size], name="x")
     y = tf.placeholder("float", shape=[None, y_size], name="y")
@@ -120,34 +122,63 @@ def main():
     cost = tf.nn.softmax_cross_entropy_with_logits(labels=y, logits=yhat)
     updates = tf.train.GradientDescentOptimizer(0.01).minimize(cost)
 
-    # Saver 
+    init = tf.initialize_all_variables()
+
+    # Create a saver for writing training checkpoints.
     saver = tf.train.Saver()
 
-    # Run SGD
-    sess = tf.Session()
-    init = tf.global_variables_initializer()
+    # Instantiate a SummaryWriter to output summaries and the Graph.
+    # summary_writer = tf.summary.FileWriter(train_dir, sess.graph)
+
+    # Run the Op to initialize the variables.
     sess.run(init)
-    # sess.run(Op_record_init)
+
+    # run the training
     for epoch in range(epochs):
-        # Train with each example
-        for i in range(int(len(train_X) / bs)):
-            sess.run(updates, feed_dict={X: train_X[bs * i: bs * i + bs], y: train_y[bs * i: bs * i + bs]})
-            train_accuracy = np.mean(np.argmax(train_y, axis=1) ==
-                                     sess.run(predict, feed_dict={X: train_X, y: train_y}))
-            test_accuracy = np.mean(np.argmax(test_y, axis=1) ==
-                                    sess.run(predict, feed_dict={X: test_X, y: test_y}))
+        for i in range(len(train_X) / bs):
+            if i % 1 == 0:
+                train_accuracy = np.mean(np.argmax(train_y, axis=1) == sess.run(predict, feed_dict={X: train_X, y: train_y}))
+                print("step %d, training accuracy %g" % (epoch * len(train_X) / bs + i, train_accuracy))
 
-            print("Epoch = %d, batch = %d, train accuracy = %.2f%%, test accuracy = %.2f%%"
-                  % (epoch + 1, i + 1, 100. * train_accuracy, 100. * test_accuracy))
+            updates.run(feed_dict={X: train_X[bs * i: bs * i + bs], y: train_y[bs * i: bs * i + bs]})
 
-    # sess.run(Op_diff)
-    if not os.path.exists("saved_model"):
-        os.mkdir("saved_model")
+        test_accuracy = np.mean(np.argmax(test_y, axis=1) == sess.run(predict, feed_dict={X: test_X, y: test_y}))
 
-    save_path = saver.save(sess, os.path.join("saved_model", saved_model))
-    print("Model saved in file: %s" % save_path)
+        print("test accuracy at epoach %d: %g" % (epoch,test_accuracy))
 
-    sess.close()
+    # print test error
+    test_accuracy = np.mean(np.argmax(test_y, axis=1) == sess.run(predict, feed_dict={X: test_X, y: test_y}))
+
+    print("Final test accuracy: %g" % test_accuracy)
+
+    # # Saver
+    # saver = tf.train.Saver()
+    #
+    # # Run SGD
+    # sess = tf.Session()
+    # init = tf.global_variables_initializer()
+    # sess.run(init)
+    # # sess.run(Op_record_init)
+    # for epoch in range(epochs):
+    #     # Train with each example
+    #     for i in range(int(len(train_X) / bs)):
+    #         sess.run(updates, feed_dict={X: train_X[bs * i: bs * i + bs], y: train_y[bs * i: bs * i + bs]})
+    #         train_accuracy = np.mean(np.argmax(train_y, axis=1) ==
+    #                                  sess.run(predict, feed_dict={X: train_X, y: train_y}))
+    #         test_accuracy = np.mean(np.argmax(test_y, axis=1) ==
+    #                                 sess.run(predict, feed_dict={X: test_X, y: test_y}))
+    #
+    #         print("Epoch = %d, batch = %d, train accuracy = %.2f%%, test accuracy = %.2f%%"
+    #               % (epoch + 1, i + 1, 100. * train_accuracy, 100. * test_accuracy))
+    #
+    # # sess.run(Op_diff)
+    # if not os.path.exists("saved_model"):
+    #     os.mkdir("saved_model")
+    #
+    # save_path = saver.save(sess, os.path.join("saved_model", saved_model))
+    # print("Model saved in file: %s" % save_path)
+    #
+    # sess.close()
 
 
 if __name__ == '__main__':
