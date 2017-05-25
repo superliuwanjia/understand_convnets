@@ -142,7 +142,7 @@ def main():
         # h_pool1 = max_pool_2x2(h_conv1)
 
         # h_pool1_flat = tf.reshape(h_conv1, [-1, 246 * 246 * 32])
-        h_pool1_flat = tf.nn.relu(tf.matmul(x, W_conv1) + b_conv1)
+        h_pool1_flat = tf.matmul(x, W_conv1) + b_conv1
 
         # dropout
         # keep_prob = tf.placeholder(tf.float32)
