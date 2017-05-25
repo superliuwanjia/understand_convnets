@@ -8,7 +8,7 @@ import glob
 bs = 32
 epochs = 4
 image_mode = "L"
-saved_model = "softmax_2objects_gray_scale.ckpt"
+saved_model = "softmax_2objects_RGB.ckpt"
 RANDOM_SEED = 42
 train_test_ratio = 0.8
 
@@ -16,7 +16,7 @@ random.seed(RANDOM_SEED)
 tf.set_random_seed(RANDOM_SEED)
 np.random.seed(RANDOM_SEED)
 
-image_folder = os.path.join("./images/2objects/")
+image_folder = os.path.join("../images/2objects/")
 
 
 def init_weights(shape, name):
@@ -117,7 +117,7 @@ def main():
     predict = tf.argmax(yhat, axis=1)
 
     # Backward propagation
-    cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=y, logits=yhat))
+    cost = tf.nn.softmax_cross_entropy_with_logits(labels=y, logits=yhat)
     updates = tf.train.GradientDescentOptimizer(0.01).minimize(cost)
 
     # Saver
