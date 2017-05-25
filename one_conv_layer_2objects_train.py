@@ -123,8 +123,8 @@ def main():
     sess = tf.InteractiveSession()
     with tf.device("/gpu:0"):
         # Symbols
-        X = tf.placeholder("float", shape=[None, x_size], name="x")
-        y = tf.placeholder("float", shape=[None, y_size], name="y")
+        X = tf.placeholder(tf.float32, shape=[None, 250*250])
+        y = tf.placeholder(tf.float32, shape=[None, 2])
 
         # # Weight initializations
         # w_soft = init_weights((x_size, y_size), "w_soft")
