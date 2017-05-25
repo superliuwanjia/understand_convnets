@@ -10,7 +10,7 @@ RANDOM_SEED = 42
 tf.set_random_seed(RANDOM_SEED)
 
 model = os.path.join("saved_model", "conv_2objects_Grey_best.ckpt")
-graph = os.path.join("saved_model", "conv_2objects_Grey_best.meta")
+graph = os.path.join("saved_model", "conv_2objects_Grey_best.ckpt.meta")
 viz_path = "visualizations"
 ks1 = [32, 32, 1]
 
