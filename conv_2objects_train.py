@@ -6,7 +6,7 @@ from scipy import misc
 import glob
 
 bs = 32
-epochs = 15
+epochs = 8
 image_mode = "L"
 saved_model = "conv_2objects_Grey.ckpt"
 saved_model_best = "conv_2objects_Grey_best.ckpt"
