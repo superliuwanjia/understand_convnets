@@ -44,7 +44,7 @@ def weight_variable(shape):
     Cout: the number of filters
     :return: a tensor variable for weights with initial values
     '''
-    initial = tf.truncated_normal(shape, stddev=0.1)
+    initial = 0.*tf.truncated_normal(shape, stddev=0.1)
     return tf.Variable(initial)
 
 def bias_variable(shape):
