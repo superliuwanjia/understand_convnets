@@ -120,7 +120,7 @@ def main():
     cost = tf.nn.softmax_cross_entropy_with_logits(labels=y, logits=yhat)
     updates = tf.train.GradientDescentOptimizer(0.01).minimize(cost)
 
-    # Saver
+    # Saver 
     saver = tf.train.Saver()
 
     # Run SGD
