@@ -129,7 +129,7 @@ def main():
     sess = tf.InteractiveSession()
 
     with tf.device("/gpu:0"):
-        x = tf.placeholder(tf.float32, shape=[None, 250*250])
+        X = tf.placeholder(tf.float32, shape=[None, 250*250])
         y_ = tf.placeholder(tf.float32, shape=[None, 2])
 
         # softmax
@@ -137,50 +137,41 @@ def main():
         b_fc2 = bias_variable([2])
 
         # y_conv = tf.nn.softmax(tf.matmul(x, W_fc2) + b_fc2)
-        y_conv = tf.matmul(x, W_fc2) + b_fc2
+        yhat = tf.matmul(X, W_fc2) + b_fc2
+        predict = tf.argmax(yhat, axis=1)
 
         # setup training
         # cross_entropy = tf.reduce_mean(-tf.reduce_sum(y_ * tf.log(y_conv), reduction_indices=[1]))
-        cross_entropy = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=y_, logits=y_conv))
-        train_step = tf.train.GradientDescentOptimizer(0.01).minimize(cross_entropy)
-        correct_prediction = tf.equal(tf.argmax(y_conv, 1), tf.argmax(y_, 1))
-        accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+        cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=y_, logits=yhat))
+        updates = tf.train.GradientDescentOptimizer(0.01).minimize(cost)
 
-        # Add the variable initializer Op.
-        init = tf.initialize_all_variables()
-
-    # Create a saver for writing training checkpoints.
     saver = tf.train.Saver()
 
-    # Instantiate a SummaryWriter to output summaries and the Graph.
-    # summary_writer = tf.summary.FileWriter(train_dir, sess.graph)
-
-    # Run the Op to initialize the variables.
+    # Run SGD
+    sess = tf.Session()
+    init = tf.global_variables_initializer()
     sess.run(init)
-
-    # run the training
+    # sess.run(Op_record_init)
     for epoch in range(epochs):
-        for i in range(len(train_X) / bs):
-            if i % 1 == 0:
-                train_accuracy = accuracy.eval(feed_dict={
-                    x: train_X[bs * i: bs * i + bs], y_: train_y[bs * i: bs * i + bs]})
-                print("step %d, training accuracy %g" % (epoch*len(train_X) / bs + i, train_accuracy))
+        # Train with each example
+        for i in range(int(len(train_X) / bs)):
+            sess.run(updates, feed_dict={X: train_X[bs * i: bs * i + bs], y: train_y[bs * i: bs * i + bs]})
+            train_accuracy = np.mean(np.argmax(train_y, axis=1) ==
+                                     sess.run(predict, feed_dict={X: train_X, y: train_y}))
+            test_accuracy = np.mean(np.argmax(test_y, axis=1) ==
+                                    sess.run(predict, feed_dict={X: test_X, y: test_y}))
 
-                # Update the events file.
-                # summary_str = sess.run(summary_op, feed_dict={x: train_X[bs * i: bs * i + bs], y_: train_y[bs * i: bs * i + bs]})
-                # summary_writer.add_summary(summary_str, i)
-                # summary_writer.flush()
+            print("Epoch = %d, batch = %d, train accuracy = %.2f%%, test accuracy = %.2f%%"
+                  % (epoch + 1, i + 1, 100. * train_accuracy, 100. * test_accuracy))
 
-            if i % 1100 == 0:
-                checkpoint_file = os.path.join(train_dir, 'checkpoint')
-                saver.save(sess, checkpoint_file, global_step=i)
+    # sess.run(Op_diff)
+    if not os.path.exists("saved_model"):
+        os.mkdir("saved_model")
 
-            train_step.run(feed_dict={x: train_X[bs * i: bs * i + bs], y_: train_y[bs * i: bs * i + bs]})
+    save_path = saver.save(sess, os.path.join("saved_model", saved_model))
+    print("Model saved in file: %s" % save_path)
 
-        print("test accuracy at epoach %d: %g" % (epoch, accuracy.eval(feed_dict={x: test_X, y_: test_y})))
-
-    # print test error
-    print("Final test accuracy %g" % accuracy.eval(feed_dict={x: test_X, y_: test_y}))
+    sess.close()
 
 if __name__ == '__main__':
     main()
