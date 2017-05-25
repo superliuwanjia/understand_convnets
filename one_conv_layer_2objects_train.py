@@ -111,7 +111,7 @@ def main():
 
     # Weight initializations
     w_soft = init_weights((x_size, y_size), "w_soft")
-    b_soft = init_bias((y_size))
+    b_soft = init_bias([y_size])
 
     # Forward propagation
     yhat = tf.nn.softmax(tf.matmul(X, w_soft) + b_soft)
