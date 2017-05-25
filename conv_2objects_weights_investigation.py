@@ -18,7 +18,7 @@ ks1 = [32, 32, 1]
 
 
 def save_images(images, fns, path, dim=(250, 250, 3)):
-    import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     if not os.path.exists(path):
         os.mkdir(path)
 
