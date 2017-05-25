@@ -110,7 +110,7 @@ def main():
     y = tf.placeholder("float", shape=[None, y_size], name="y")
 
     # Weight initializations
-    w_soft = init_weights((x_size, y_size), "w_soft")
+    w_soft = init_weights([x_size, y_size], "w_soft")
     b_soft = init_bias([y_size])
 
     # Forward propagation
