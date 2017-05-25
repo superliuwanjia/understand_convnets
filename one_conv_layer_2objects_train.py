@@ -18,20 +18,14 @@ np.random.seed(RANDOM_SEED)
 
 image_folder = os.path.join("./images/2objects/")
 
-def weight_variable(shape):
-    '''
-    Initialize weights
-    :param shape: shape of weights, e.g. [w, h ,Cin, Cout] where
-    w: width of the filters
-    h: height of the filters
-    Cin: the number of the channels of the filters
-    Cout: the number of filters
-    :return: a tensor variable for weights with initial values
-    '''
-    initial = tf.random_normal(shape, stddev=0.001)
-    return tf.Variable(initial)
 
-def bias_variable(shape):
+def init_weights(shape, name):
+    """ Weight initialization """
+    weights = tf.zeros(shape)
+    # weights = tf.random_normal(shape, stddev=1e-8)
+    return tf.Variable(weights, name=name)
+
+def init_bias(shape):
     '''
     Initialize biases
     :param shape: shape of biases, e.g. [Cout] where
@@ -42,18 +36,11 @@ def bias_variable(shape):
     return tf.Variable(initial)
 
 
-def init_weights(shape, name):
-    """ Weight initialization """
-    weights = tf.zeros(shape)
-    # weights = tf.random_normal(shape, stddev=1e-8)
-    return tf.Variable(weights, name=name)
-
-
 def forwardprop(X, w_soft):
     """
     Forward-propagation.
     """
-    yhat = tf.nn.softmax(tf.matmul(X, w_soft))
+    yhat = tf.matmul(X, w_soft)
     return yhat
 
 
@@ -92,8 +79,6 @@ def get_data():
 
     # Prepend the column of 1s for bias
     num_exps, img_dim = X.shape
-    # X_bias = np.ones((num_exps, img_dim + 1))
-    # X_bias[:, 1:] = X
     X_bias = X
 
     # Convert into one-hot vectors
@@ -120,101 +105,50 @@ def main():
     x_size = train_X.shape[1]  # Number of input nodes
     y_size = train_y.shape[1]  # Number of outcomes
 
-    sess = tf.InteractiveSession()
-    with tf.device("/gpu:0"):
-        # Symbols
-        X = tf.placeholder(tf.float32, shape=[None, 250*250])
-        y = tf.placeholder(tf.float32, shape=[None, 2])
+    # Symbols
+    X = tf.placeholder("float", shape=[None, x_size], name="x")
+    y = tf.placeholder("float", shape=[None, y_size], name="y")
 
-        # # Weight initializations
-        # w_soft = init_weights((x_size, y_size), "w_soft")
-        # w_soft_init = init_weights((x_size, y_size), "w_soft_init")
-        # w_soft_diff = init_weights((x_size, y_size), "w_soft_diff")
-        #
-        # # record the decision boundary
-        # dec_b = tf.Variable(dec_b, name="dec_b")
-        #
-        # # weights noise cancelling
-        # Op_record_init = w_soft_init.assign(w_soft)
-        # Op_diff = w_soft_diff.assign(w_soft - w_soft_init)
-        #
-        # # Forward propagation
-        # yhat = forwardprop(X, w_soft)
-        # predict = tf.argmax(yhat, axis=1)
+    # Weight initializations
+    w_soft = init_weights((x_size, y_size), "w_soft")
+    b_soft = init_bias(y_size)
 
-        W_fc2 = weight_variable([250 * 250, 2])
-        b_fc2 = bias_variable([2])
+    # Forward propagation
+    yhat = tf.nn.softmax(tf.matmul(X, w_soft) + b_soft)
+    predict = tf.argmax(yhat, axis=1)
 
-        yhat = tf.nn.softmax(tf.matmul(X, W_fc2) + b_fc2)
+    # Backward propagation
+    cost = tf.reduce_mean(-tf.reduce_sum(y * tf.log(yhat), reduction_indices=[1]))
+    updates = tf.train.GradientDescentOptimizer(0.01).minimize(cost)
 
-        # Backward propagation
-        # cost = tf.nn.softmax_cross_entropy_with_logits(labels=y, logits=yhat)
-        cost = tf.reduce_mean(-tf.reduce_sum(y * tf.log(yhat), reduction_indices=[1]))
-        updates = tf.train.GradientDescentOptimizer(0.01).minimize(cost)
-        correct_prediction = tf.equal(tf.argmax(yhat, 1), tf.argmax(y, 1))
-        accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
-
-        init = tf.initialize_all_variables()
-
-    # Create a saver for writing training checkpoints.
+    # Saver
     saver = tf.train.Saver()
 
-    # Instantiate a SummaryWriter to output summaries and the Graph.
-    # summary_writer = tf.summary.FileWriter(train_dir, sess.graph)
-
-    # Run the Op to initialize the variables.
+    # Run SGD
+    sess = tf.Session()
+    init = tf.global_variables_initializer()
     sess.run(init)
-
-    # run the training
+    # sess.run(Op_record_init)
     for epoch in range(epochs):
-        for i in range(len(train_X) / bs):
-            if i % 1 == 0:
-                # train_accuracy = sess.run(accuracy, feed_dict={X: train_X, y: train_y})
-                train_accuracy = accuracy.eval(feed_dict={
-                    X: train_X, y: train_y})
-                print("step %d, training accuracy %g" % (epoch * len(train_X) / bs + i, train_accuracy))
+        # Train with each example
+        for i in range(int(len(train_X) / bs)):
+            sess.run(updates, feed_dict={X: train_X[bs * i: bs * i + bs], y: train_y[bs * i: bs * i + bs]})
+            train_accuracy = np.mean(np.argmax(train_y, axis=1) ==
+                                     sess.run(predict, feed_dict={X: train_X, y: train_y}))
+            test_accuracy = np.mean(np.argmax(test_y, axis=1) ==
+                                    sess.run(predict, feed_dict={X: test_X, y: test_y}))
 
-            updates.run(feed_dict={X: train_X[bs * i: bs * i + bs], y: train_y[bs * i: bs * i + bs]})
+            print("Epoch = %d, batch = %d, train accuracy = %.2f%%, test accuracy = %.2f%%"
+                  % (epoch + 1, i + 1, 100. * train_accuracy, 100. * test_accuracy))
 
-        test_accuracy = accuracy.eval(feed_dict={
-                    X: test_X, y: test_y})
+    # sess.run(Op_diff)
+    if not os.path.exists("saved_model"):
+        os.mkdir("saved_model")
 
-        print("test accuracy at epoach %d: %g" % (epoch,test_accuracy))
+    save_path = saver.save(sess, os.path.join("saved_model", saved_model))
+    print("Model saved in file: %s" % save_path)
 
-    # print test error
-    test_accuracy = accuracy.eval(feed_dict={
-        X: test_X, y: test_y})
-
-    print("Final test accuracy: %g" % test_accuracy)
-
-    # # Saver
-    # saver = tf.train.Saver()
-    #
-    # # Run SGD
-    # sess = tf.Session()
-    # init = tf.global_variables_initializer()
-    # sess.run(init)
-    # # sess.run(Op_record_init)
-    # for epoch in range(epochs):
-    #     # Train with each example
-    #     for i in range(int(len(train_X) / bs)):
-    #         sess.run(updates, feed_dict={X: train_X[bs * i: bs * i + bs], y: train_y[bs * i: bs * i + bs]})
-    #         train_accuracy = np.mean(np.argmax(train_y, axis=1) ==
-    #                                  sess.run(predict, feed_dict={X: train_X, y: train_y}))
-    #         test_accuracy = np.mean(np.argmax(test_y, axis=1) ==
-    #                                 sess.run(predict, feed_dict={X: test_X, y: test_y}))
-    #
-    #         print("Epoch = %d, batch = %d, train accuracy = %.2f%%, test accuracy = %.2f%%"
-    #               % (epoch + 1, i + 1, 100. * train_accuracy, 100. * test_accuracy))
-    #
-    # # sess.run(Op_diff)
-    # if not os.path.exists("saved_model"):
-    #     os.mkdir("saved_model")
-    #
-    # save_path = saver.save(sess, os.path.join("saved_model", saved_model))
-    # print("Model saved in file: %s" % save_path)
-    #
-    # sess.close()
+    sess.close()
 
 
 if __name__ == '__main__':
