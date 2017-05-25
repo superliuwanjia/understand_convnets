@@ -8,7 +8,8 @@ import glob
 bs = 32
 epochs = 15
 image_mode = "L"
-saved_model = "conv_2objects_RGB.ckpt"
+saved_model = "conv_2objects_Grey.ckpt"
+saved_model_best = "conv_2objects_Grey_best.ckpt"
 RANDOM_SEED = 42
 train_test_ratio = 0.8
 input_shape = [250, 250, 1]
@@ -114,7 +115,7 @@ def main():
         # reshape the input image
         X_image = tf.reshape(X, [-1, 250, 250, 1])
         # first layer
-        ks1 = [250, 250, 1]
+        ks1 = [32, 32, 1]
         nf1 = 2
         h_size = nf1 * (input_shape[0] - ks1[0] + 1) * (input_shape[1] - ks1[1] + 1)  # Number of hidden nodes
         w_conv1 = init_weights([ks1[0], ks1[1], ks1[2], nf1], name="w1")
@@ -144,6 +145,8 @@ def main():
     sess = tf.Session()
     init = tf.global_variables_initializer()
     sess.run(init)
+
+    test_accu_best = 0.
     # sess.run(Op_record_init)
     for epoch in range(epochs):
         # Train with each example
@@ -156,6 +159,13 @@ def main():
 
             print("Epoch = %d, batch = %d, train accuracy = %.2f%%, test accuracy = %.2f%%"
                   % (epoch + 1, i + 1, 100. * train_accuracy, 100. * test_accuracy))
+        test_accuracy = np.mean(np.argmax(test_y, axis=1) ==
+                                sess.run(predict, feed_dict={X: test_X, y: test_y}))
+        print("Test accuracy at epoch %d = %.2f%%" % (epoch + 1, 100. * test_accuracy))
+        if test_accuracy >= test_accu_best:
+            if not os.path.exists("saved_model"):
+                os.mkdir("saved_model")
+            save_path_best = saver.save(sess, os.path.join("saved_model", saved_model_best))
 
     # sess.run(Op_diff)
     if not os.path.exists("saved_model"):
