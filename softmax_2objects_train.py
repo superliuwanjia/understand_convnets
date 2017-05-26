@@ -21,7 +21,7 @@ image_folder = os.path.join("../images/2objects/")
 def init_weights(shape, name):
     """ Weight initialization """
     weights = tf.zeros(shape)
-    #weights = tf.random_normal(shape, stddev=1e-8)
+    # weights = tf.random_normal(shape, stddev=1e-8)
     return tf.Variable(weights, name=name)
 
 def forwardprop(X, w_soft):
