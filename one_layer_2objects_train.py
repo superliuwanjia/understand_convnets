@@ -16,11 +16,11 @@ from sklearn import datasets
 from sklearn.model_selection import train_test_split
 
 bs = 32
-epochs = 10
-num_hidden = 1000
+epochs = 20
+num_hidden = 100
 image_mode = "L"
-saved_model = "1layer_mlp_2objects_L_random_normal_0_1e-8.ckpt"
-init_std = 1e-8
+saved_model = "1layer_mlp_2objects_L_random_normal_0_1.ckpt"
+init_std = 1
 RANDOM_SEED = 42
 train_test_ratio = 0.8
 
@@ -112,7 +112,7 @@ def main():
 
         # Backward propagation
         cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=y, logits=yhat))
-        #updates = tf.train.GradientDescentOptimizer(0.1).minimize(cost)
+        #updates = tf.train.GradientDescentOptimizer(0.01).minimize(cost)
         updates = tf.train.AdamOptimizer(learning_rate=0.01).minimize(cost)
 
     # Saver
