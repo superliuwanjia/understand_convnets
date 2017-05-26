@@ -147,7 +147,7 @@ def main():
 
         # Backward propagation
         cost = tf.reduce_mean(-tf.reduce_sum(y * tf.log(yhat), reduction_indices=[1]))
-        updates = tf.train.GradientDescentOptimizer(0.1).minimize(cost)
+        updates = tf.train.AdamOptimizer(1e-4).minimize(cost)
 
     # Saver
     saver = tf.train.Saver()
