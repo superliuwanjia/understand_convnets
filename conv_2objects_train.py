@@ -6,7 +6,7 @@ from scipy import misc
 import glob
 
 bs = 32
-epochs = 50
+epochs = 100
 image_mode = "RGB"
 saved_model = "conv_ks_250_nf_1000_2objects_RGB_random_init.ckpt"
 saved_model_best = "conv_ks_250_nf_1000_2objects_RGB_random_init_best.ckpt"
