@@ -60,9 +60,9 @@ def main():
             yhat = tf.get_collection("yhat")[0]
             predict = tf.get_collection("predict")[0]
 
-            graph = tf.get_default_graph()
-            X = graph.get_tensor_by_name("x:0")
-            y = graph.get_tensor_by_name("y:0")
+            net = tf.get_default_graph()
+            X = net.get_tensor_by_name("x:0")
+            y = net.get_tensor_by_name("y:0")
 
             # Reconstruct the input image
             I_hat_from_u1 = tf.nn.conv2d_transpose(u1, w1, output_shape=[conv_2objects_train.bs, 250, 250, 1],
