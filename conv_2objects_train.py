@@ -108,7 +108,7 @@ def main():
     x_size = train_X.shape[1]  # Number of input nodes
     y_size = train_y.shape[1]  # Number of outcomes
 
-    with tf.device("/gpu:3"):
+    with tf.device("/gpu:0"):
         # Symbols
         X = tf.placeholder("float", shape=[None, x_size], name="x")
         y = tf.placeholder("float", shape=[None, y_size], name="y")
