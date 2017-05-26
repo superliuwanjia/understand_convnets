@@ -1,27 +1,23 @@
 import os
 import scipy.misc
-
 import tensorflow as tf
 import numpy as np
-
 import one_layer_2objects_train
 
 RANDOM_SEED = 42
 tf.set_random_seed(RANDOM_SEED)
 
-model = os.path.join("saved_model","1layer_mlp_2objects_RGB_random_normal_0_1.ckpt")
-graph = os.path.join("saved_model","1layer_mlp_2objects_RGB_random_normal_0_1.ckpt.meta")
-viz_path = "visualizations"
-viz_subfolder = "RGB_random_normal_0_1"
-viz_path = os.path.join(viz_path, viz_subfolder)
+model = os.path.join("saved_model","one_hidden_2objects_RGB.ckpt")
+graph = os.path.join("saved_model","one_hidden_2objects_RGB.ckpt.meta")
 
+viz_path = "visualizations"
 
 def save_images(images, fns, path, dim=(250,250, 3)):
     if not os.path.exists(path):
         os.mkdir(path)
 
     for i, (image,fn) in enumerate(zip(images, fns)):
-        image = image.reshape(dim)
+        image = np.asarray(tf.reshape(image, dim).eval())
         scipy.misc.imsave(os.path.join(path, fn), image)
         
 def main():
@@ -33,37 +29,43 @@ def main():
     with tf.Session() as sess:
         saver.restore(sess, model)
         print "Session loaded."
+		
+        # restore the weights
+        w_hidden = tf.get_collection(tf.GraphKeys.VARIABLES,"w_hidden")[0]
+        w_soft = tf.get_collection(tf.GraphKeys.VARIABLES,"w_soft")[0]
+        w_mul = tf.matmul(w_hidden, w_soft)
+		
+        print (w_hidden.shape)
+        print (w_soft.shape)
         
- 
-        train_X, test_X, train_y, test_y, train_fn, test_fn = one_layer_2objects_train.get_data()
+        # restore the training data
+        #train_X, test_X, train_y, test_y, train_fn, test_fn = one_layer_2objects_train.get_data()
+		
         # Layer's sizes
-        x_size = train_X.shape[1]   # Number of input nodes
-        h_size = 100                # Number of hidden nodes
-        y_size = train_y.shape[1]   # Number of outcomes
+        #input_size = train_X.shape[1]
+        #hidden_size = 100            
+        #output_size = train_y.shape[1]
 
         # Symbols
-        X = tf.placeholder("float", shape=[None, x_size], name="x")
-        y = tf.placeholder("float", shape=[None, y_size], name="y")
-
-        # Weight initializations
-        w_hidden = tf.get_collection(tf.GraphKeys.VARIABLES,"w_hidden")[0]
-        w_soft = tf.get_collection(tf.GraphKeys.VARIABLES,"w_softmax")[0]
+        #X = tf.placeholder("float", shape=[None, input_size], name="X")
+        #y = tf.placeholder("float", shape=[None, output_size], name="y")
 
         # Forward propagation
-        yhat, h, u = one_layer_2objects_train.forwardprop(X, w_hidden, w_soft)
-        predict = tf.argmax(yhat, axis=1)
+        #yhat, h, h_before_relu = one_layer_2objects_train.forwardprop(X, w_hidden, w_soft)
+        #predict = tf.argmax(yhat, axis=1)
     
-
         # visualize weights
-        w = sess.run(w_hidden)
-        save_images([w[:,i][0:w.shape[0]-1,] for i in range(w.shape[1])], \
-                    [str(i)+".png" for i in range(w.shape[1])], os.path.join(viz_path, "w"))  
+		
+		
+		# hidden weights 
+        #save_images([w_hidden[:,i] for i in range(w_hidden.shape[1])], \
+                    #["hidden_weights_" + str(i) + ".png" for i in range(w_hidden.shape[1])], viz_path)  
+					
+        # hidden_weights * soft_weights
+        save_images([w_mul[:,i] for i in range(w_mul.shape[1])], \
+                    ["hidden_multi_soft_" + str(i) + ".png" for i in range(w_mul.shape[1])], viz_path)  
 
-        soft = sess.run(w_soft)
-        save_images([np.matmul(w,soft)[:,i][0:w.shape[0]-1,] for i in range(soft.shape[1])], \
-                    [str(i)+".png" for i in range(soft.shape[1])], os.path.join(viz_path, "w*s"))  
-
-       
+'''
         # visualize weights * I
         h_materialized = sess.run(h, feed_dict={X:train_X, y:train_y})
         save_images(h_materialized, train_fn, os.path.join(viz_path, "weights_of_filters_per_image"),dim=(10,10))
@@ -158,7 +160,7 @@ def main():
             os.path.join(viz_path, "sigma_dot_1-a_u")) 
         save_images(all_pass_X[:,0:all_pass_X.shape[1]-1],train_fn, \
             os.path.join(viz_path, "sigma_dot_u")) 
-        
+'''       
                 
  
 if __name__ == "__main__":
