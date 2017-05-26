@@ -72,6 +72,8 @@ def get_data():
         Label.append(int(os.path.basename(image_path).split("_")[0]))
         X.append(misc.imread(image_path, mode=image_mode).flatten())
     X = np.array(X) / 225
+    import pdb;
+    pdb.set_trace()
     Label = np.array(Label)
 
     print (X.shape)
@@ -102,9 +104,6 @@ def get_data():
 
 def main():
     train_X, test_X, train_y, test_y, train_fn, test_fn, dec_b = get_data()
-    import pdb;
-    pdb.set_trace()
-
     # Layer's sizes
     x_size = train_X.shape[1]  # Number of input nodes
     y_size = train_y.shape[1]  # Number of outcomes
