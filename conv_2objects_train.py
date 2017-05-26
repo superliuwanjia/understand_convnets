@@ -108,7 +108,7 @@ def main():
     x_size = train_X.shape[1]  # Number of input nodes
     y_size = train_y.shape[1]  # Number of outcomes
 
-    with tf.device("/gpu:0"):
+    with tf.device("/gpu:3"):
         # Symbols
         X = tf.placeholder("float", shape=[None, x_size], name="x")
         y = tf.placeholder("float", shape=[None, y_size], name="y")
@@ -182,7 +182,7 @@ def main():
         # sess.run(Op_diff)
         if not os.path.exists("saved_model"):
             os.mkdir("saved_model")
-    
+
         save_path = saver.save(sess, os.path.join("saved_model", saved_model))
         print("Model saved in file: %s" % save_path)
 
