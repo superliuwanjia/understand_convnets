@@ -5,7 +5,7 @@ import numpy as np
 from scipy import misc
 import glob
 
-bs = 32
+bs = 64
 epochs = 20
 image_mode = "RGB"
 saved_model = "conv_ks_32_2objects_RGB_random_init.ckpt"
