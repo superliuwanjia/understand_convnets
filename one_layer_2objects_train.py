@@ -7,11 +7,11 @@ import glob
 import time
 
 bs = 32
-epochs = 4
+epochs = 10
 num_hidden = 100
 image_mode = "RGB"
 saved_model = "one_hidden_2objects_RGB.ckpt"
-init_std = 1e-8
+init_std = 1e-3
 RANDOM_SEED = 42
 train_test_ratio = 0.8
 
@@ -86,7 +86,7 @@ def main():
                       name="w_soft", trainable=True)
 	
     # bia initializations
-    soft_bias = tf.Variable(tf.random_normal((1, train_y.shape[1]), stddev=init_std),
+    soft_bias = tf.Variable(0.*tf.random_normal((1, train_y.shape[1]), stddev=init_std),
                       name="soft_bias", trainable=True)
 	
     # Forward propagation
@@ -95,7 +95,7 @@ def main():
 
     # Backward propagation
     cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=y, logits=yhat))
-    updates = tf.train.AdamOptimizer(learning_rate=0.01).minimize(cost)
+    updates = tf.train.AdamOptimizer(learning_rate=1e-4).minimize(cost)
 
     # Saver
     saver = tf.train.Saver()
