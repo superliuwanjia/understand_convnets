@@ -149,44 +149,44 @@ def main():
         cost = tf.reduce_mean(-tf.reduce_sum(y * tf.log(yhat), reduction_indices=[1]))
         updates = tf.train.GradientDescentOptimizer(0.01).minimize(cost)
 
-        # Saver
-        saver = tf.train.Saver()
+    # Saver
+    saver = tf.train.Saver()
 
-        # Run SGD
-        sess = tf.Session()
-        init = tf.global_variables_initializer()
-        sess.run(init)
+    # Run SGD
+    sess = tf.Session()
+    init = tf.global_variables_initializer()
+    sess.run(init)
 
-        test_accu_best = 0.
-        # sess.run(Op_record_init)
-        for epoch in range(epochs):
-            # Train with each example
-            for i in range(int(len(train_X) / bs)):
-                sess.run(updates, feed_dict={X: train_X[bs * i: bs * i + bs], y: train_y[bs * i: bs * i + bs]})
-                train_accuracy = np.mean(np.argmax(train_y, axis=1) ==
-                                         sess.run(predict, feed_dict={X: train_X, y: train_y}))
-                test_accuracy = np.mean(np.argmax(test_y, axis=1) ==
-                                        sess.run(predict, feed_dict={X: test_X, y: test_y}))
-
-                print("Epoch = %d, batch = %d, train accuracy = %.2f%%, test accuracy = %.2f%%"
-                      % (epoch + 1, i + 1, 100. * train_accuracy, 100. * test_accuracy))
+    test_accu_best = 0.
+    # sess.run(Op_record_init)
+    for epoch in range(epochs):
+        # Train with each example
+        for i in range(int(len(train_X) / bs)):
+            sess.run(updates, feed_dict={X: train_X[bs * i: bs * i + bs], y: train_y[bs * i: bs * i + bs]})
+            train_accuracy = np.mean(np.argmax(train_y, axis=1) ==
+                                     sess.run(predict, feed_dict={X: train_X, y: train_y}))
             test_accuracy = np.mean(np.argmax(test_y, axis=1) ==
                                     sess.run(predict, feed_dict={X: test_X, y: test_y}))
-            print("Test accuracy at epoch %d = %.2f%%" % (epoch + 1, 100. * test_accuracy))
-            if test_accuracy >= test_accu_best:
-                if not os.path.exists("saved_model"):
-                    os.mkdir("saved_model")
-                save_path_best = saver.save(sess, os.path.join("saved_model", saved_model_best))
-                test_accu_best = test_accuracy
 
-        # sess.run(Op_diff)
-        if not os.path.exists("saved_model"):
-            os.mkdir("saved_model")
+            print("Epoch = %d, batch = %d, train accuracy = %.2f%%, test accuracy = %.2f%%"
+                  % (epoch + 1, i + 1, 100. * train_accuracy, 100. * test_accuracy))
+        test_accuracy = np.mean(np.argmax(test_y, axis=1) ==
+                                sess.run(predict, feed_dict={X: test_X, y: test_y}))
+        print("Test accuracy at epoch %d = %.2f%%" % (epoch + 1, 100. * test_accuracy))
+        if test_accuracy >= test_accu_best:
+            if not os.path.exists("saved_model"):
+                os.mkdir("saved_model")
+            save_path_best = saver.save(sess, os.path.join("saved_model", saved_model_best))
+            test_accu_best = test_accuracy
 
-        save_path = saver.save(sess, os.path.join("saved_model", saved_model))
-        print("Model saved in file: %s" % save_path)
+    # sess.run(Op_diff)
+    if not os.path.exists("saved_model"):
+        os.mkdir("saved_model")
 
-        sess.close()
+    save_path = saver.save(sess, os.path.join("saved_model", saved_model))
+    print("Model saved in file: %s" % save_path)
+
+    sess.close()
 
 
 if __name__ == '__main__':
