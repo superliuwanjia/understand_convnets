@@ -21,7 +21,7 @@ image_folder = os.path.join("../images/2objects/")
 def init_weights(shape, name):
     """ Weight initialization """
     weights = tf.zeros(shape)
-    #weights = tf.random_normal(shape, stddev=1e-8)
+    # weights = tf.random_normal(shape, stddev=1e-8)
     return tf.Variable(weights, name=name)
 
 def forwardprop(X, w_soft):
@@ -101,10 +101,10 @@ def main():
     w_soft_init = init_weights((x_size, y_size), "w_soft_init")
     w_soft_diff = init_weights((x_size, y_size), "w_soft_diff")
 	
-	# record the decision boundary
+    # record the decision boundary
     dec_b = tf.Variable(dec_b, name="dec_b")
 	
-	# weights noise cancelling 
+    # weights noise cancelling
     Op_record_init = w_soft_init.assign(w_soft)
     Op_diff = w_soft_diff.assign(w_soft - w_soft_init)
 	
