@@ -84,9 +84,9 @@ def main():
                                                                    conv_2objects_train.input_shape[2]],
                                                     strides=[1, 1, 1, 1], padding='VALID')
 
-            act1_hat = tf.reshape((tf.matmul(yhat, tf.transpose(w_soft))),
+            act1_hat = tf.multiply(tf.reshape((tf.matmul(yhat, tf.transpose(w_soft))),
                                   (-1, conv_2objects_train.input_shape[0] - w1_val.shape[0] + 1,
-                                   conv_2objects_train.input_shape[1] - w1_val.shape[1] + 1, w1_val.shape[3])) * a_hat
+                                   conv_2objects_train.input_shape[1] - w1_val.shape[1] + 1, w1_val.shape[3])), a_hat)
 
             I_hat_from_yhat = tf.nn.conv2d_transpose(act1_hat, w1,
                                                      output_shape=[conv_2objects_train.bs,
@@ -95,9 +95,9 @@ def main():
                                                                    conv_2objects_train.input_shape[2]],
                                                     strides=[1, 1, 1, 1], padding='VALID')
 
-            act1_hat_from_one_hot = tf.reshape((tf.matmul(yhat_one_hot, tf.transpose(w_soft))),
+            act1_hat_from_one_hot = tf.multiply(tf.reshape((tf.matmul(yhat_one_hot, tf.transpose(w_soft))),
                                   (-1, conv_2objects_train.input_shape[0] - w1_val.shape[0] + 1,
-                                   conv_2objects_train.input_shape[1] - w1_val.shape[1] + 1, w1_val.shape[3])) * a_hat
+                                   conv_2objects_train.input_shape[1] - w1_val.shape[1] + 1, w1_val.shape[3])), a_hat)
 
             I_hat_from_yhat_one_hot = tf.nn.conv2d_transpose(act1_hat_from_one_hot, w1,
                                                      output_shape=[conv_2objects_train.bs,
