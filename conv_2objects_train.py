@@ -143,6 +143,9 @@ def main():
         tf.add_to_collection("u_soft", u_soft)
         tf.add_to_collection("yhat", yhat)
         tf.add_to_collection("predict", predict)
+        tf.add_to_collection("X", X)
+        tf.add_to_collection("y", y)
+
 
         # Backward propagation
         cost = tf.reduce_mean(-tf.reduce_sum(y * tf.log(yhat), reduction_indices=[1]))
