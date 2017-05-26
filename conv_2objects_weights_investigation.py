@@ -63,8 +63,8 @@ def main():
             u_soft = tf.get_collection("u_soft")[0]
             yhat = tf.get_collection("yhat")[0]
             predict = tf.get_collection("predict")[0]
-            X = tf.get_collection("X")[0]
-            y = tf.get_collection("y")[0]
+            X = tf.get_collection("X")
+            y = tf.get_collection("y")
 
             # Reconstruct the input image
             I_hat_from_u1 = tf.nn.conv2d_transpose(u1, w1, output_shape=[conv_2objects_train.bs, 250, 250, 1],
