@@ -86,7 +86,7 @@ def main():
         I = train_X[0:  conv_2objects_train.bs]
         I = I.reshape([-1, 250, 250, 1])
         save_images([I[i,:,:,:] for i in range(I.shape[0])], \
-                    [str(i) + ".png" for i in range(I.shape[0])],
+                    [str(i) + ".jpg" for i in range(I.shape[0])],
                     os.path.join(viz_path, "I"), dim=(250, 250, 1))
 
         # visualize reconstruction from u1
