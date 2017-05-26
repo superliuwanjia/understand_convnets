@@ -7,11 +7,11 @@ import glob
 import time
 
 bs = 32
-epochs = 4
+epochs = 10
 num_hidden = 100
 image_mode = "RGB"
-saved_model = "1layer_mlp_2objects_RGB_random_normal_0_1e-8.ckpt"
-init_std = 1e-8
+saved_model = "one_hidden_2objects_RGB.ckpt"
+init_std = 1e-3
 RANDOM_SEED = 42
 train_test_ratio = 0.8
 
@@ -19,14 +19,14 @@ random.seed(RANDOM_SEED)
 tf.set_random_seed(RANDOM_SEED)
 np.random.seed(RANDOM_SEED)
 
-image_folder = os.path.join("../images/2objects/")
+image_folder = os.path.join("./images/2objects/")
 
-def forwardprop(X, w_hidden, w_soft, hidden_bias, soft_bias):
+def forwardprop(X, w_hidden, w_soft, soft_bias):
     """
     Forward-propagation.
     IMPORTANT: yhat is not softmax since TensorFlow's softmax_cross_entropy_with_logits() does that internally.
     """
-    h_before_relu = tf.matmul(X,w_hidden) + hidden_bias
+    h_before_relu = tf.matmul(X, w_hidden)
     h = tf.nn.relu(h_before_relu)
     yhat = tf.matmul(h, w_soft) + soft_bias
     return yhat, h, h_before_relu
@@ -43,7 +43,7 @@ def get_data():
         Label.append(int(os.path.basename(image_path).split("_")[0]))
         image = X.append(misc.imread(image_path, mode=image_mode).flatten())
 		
-    X = np.array(X) / 255
+    X = np.array(X) / 255.
     Label = np.array(Label)
     fns = np.array(fns)
 	
@@ -56,7 +56,7 @@ def get_data():
 
     all_index = np.arange(X.shape[0])
     np.random.shuffle(all_index)
-    X = X[all_index]
+    X = X[all_index, :]
     Y_onehot = Y_onehot[all_index]
     fns = fns[all_index]
 
@@ -86,18 +86,15 @@ def main():
                       name="w_soft", trainable=True)
 	
     # bia initializations
-    hidden_bias = tf.Variable(tf.random_normal((1, num_hidden), stddev=init_std),
-                      name="hidden_bias", trainable=True)
-    soft_bias = tf.Variable(tf.random_normal((1, train_y.shape[1]), stddev=init_std),
-                      name="soft_bias", trainable=True)
+    soft_bias = tf.Variable(0.*tf.random_normal((1, train_y.shape[1]), stddev=init_std), name="soft_bias", trainable=True)
 	
     # Forward propagation
-    yhat, h, h_before_relu = forwardprop(X, w_hidden, w_soft, hidden_bias, soft_bias)
+    yhat, h, h_before_relu = forwardprop(X, w_hidden, w_soft, soft_bias)
     predict = tf.argmax(yhat, axis=1)
 
     # Backward propagation
     cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=y, logits=yhat))
-    updates = tf.train.AdamOptimizer(learning_rate=0.01).minimize(cost)
+    updates = tf.train.AdamOptimizer(learning_rate=1e-4).minimize(cost)
 
     # Saver
     saver = tf.train.Saver()

@@ -6,13 +6,15 @@ from scipy import misc
 import glob
 
 bs = 32
-epochs = 5
-image_mode = "L"
-saved_model = "conv_2objects_Grey_random_init.ckpt"
-saved_model_best = "conv_2objects_Grey_random_init_best.ckpt"
+epochs = 100
+image_mode = "RGB"
+saved_model = "conv_ks_7_nf_64_2objects_RGB_random_init.ckpt"
+saved_model_best = "conv_ks_7_nf_64_2objects_RGB_random_init_best.ckpt"
 RANDOM_SEED = 42
 train_test_ratio = 0.8
-input_shape = [250, 250, 1]
+input_shape = [250, 250, 3]
+ks1 = [7, 7, input_shape[2]]
+nf1 = 64
 
 random.seed(RANDOM_SEED)
 tf.set_random_seed(RANDOM_SEED)
@@ -71,7 +73,9 @@ def get_data():
         fns.append(os.path.basename(image_path))
         Label.append(int(os.path.basename(image_path).split("_")[0]))
         X.append(misc.imread(image_path, mode=image_mode).flatten())
-    X = np.array(X) / 225
+
+    X = np.array(X) / 225.
+
     Label = np.array(Label)
 
     print (X.shape)
@@ -102,7 +106,6 @@ def get_data():
 
 def main():
     train_X, test_X, train_y, test_y, train_fn, test_fn, dec_b = get_data()
-
     # Layer's sizes
     x_size = train_X.shape[1]  # Number of input nodes
     y_size = train_y.shape[1]  # Number of outcomes
@@ -113,10 +116,8 @@ def main():
         y = tf.placeholder("float", shape=[None, y_size], name="y")
 
         # reshape the input image
-        X_image = tf.reshape(X, [-1, 250, 250, 1])
+        X_image = tf.reshape(X, [-1, input_shape[0], input_shape[1], input_shape[2]])
         # first layer
-        ks1 = [32, 32, 1]
-        nf1 = 32
         h_size = nf1 * (input_shape[0] - ks1[0] + 1) * (input_shape[1] - ks1[1] + 1)  # Number of hidden nodes
         w_conv1, w_conv1_init_val = init_weights([ks1[0], ks1[1], ks1[2], nf1], name="w1")
         w_conv1_init = tf.Variable(w_conv1_init_val, name='w1_init')
@@ -146,7 +147,7 @@ def main():
 
         # Backward propagation
         cost = tf.reduce_mean(-tf.reduce_sum(y * tf.log(yhat), reduction_indices=[1]))
-        updates = tf.train.GradientDescentOptimizer(0.01).minimize(cost)
+        updates = tf.train.AdamOptimizer(1e-4).minimize(cost)
 
     # Saver
     saver = tf.train.Saver()
