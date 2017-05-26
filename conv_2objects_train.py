@@ -23,8 +23,8 @@ image_folder = os.path.join("./images/2objects/")
 
 def init_weights(shape, name):
     """ Weight initialization """
-    # weights = tf.zeros(shape)
-    weights = tf.random_normal(shape, stddev=1e-3)
+    weights = tf.ones(shape)
+    # weights = tf.random_normal(shape, stddev=1e-3)
     return tf.Variable(weights, name=name)
 
 def init_bias(shape, name):
