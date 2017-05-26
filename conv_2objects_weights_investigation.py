@@ -50,6 +50,12 @@ def main():
             w1_init = tf.get_collection(tf.GraphKeys.VARIABLES, "w1_init")[0]
             w_soft_init = tf.get_collection(tf.GraphKeys.VARIABLES, "w_soft_init")[0]
 
+            # filter vals
+            w1_val = sess.run(w1)
+            w1_init_val = sess.run(w1_init)
+            w_soft_val = sess.run(w_soft)
+            w_soft_init_val = sess.run(w_soft_init)
+
             # Forward propagation
             u1 = tf.get_collection("u1")[0]
             act1 = tf.get_collection("act1")[0]
@@ -78,7 +84,9 @@ def main():
                                                                    conv_2objects_train.input_shape[2]],
                                                     strides=[1, 1, 1, 1], padding='VALID')
 
-            act1_hat = (tf.matmul(yhat, tf.transpose(w_soft))) * a_hat
+            act1_hat = tf.reshape((tf.matmul(yhat, tf.transpose(w_soft))),
+                                  (-1, conv_2objects_train.input_shape[0] - w1_val.shape[0] + 1,
+                                   conv_2objects_train.input_shape[1] - w1_val.shape[1] + 1, w1_val.shape[3])) * a_hat
 
             I_hat_from_yhat = tf.nn.conv2d_transpose(act1_hat, w1,
                                                      output_shape=[conv_2objects_train.bs,
@@ -87,7 +95,9 @@ def main():
                                                                    conv_2objects_train.input_shape[2]],
                                                     strides=[1, 1, 1, 1], padding='VALID')
 
-            act1_hat_from_one_hot = (tf.matmul(yhat_one_hot, tf.transpose(w_soft))) * a_hat
+            act1_hat_from_one_hot = tf.reshape((tf.matmul(yhat_one_hot, tf.transpose(w_soft))),
+                                  (-1, conv_2objects_train.input_shape[0] - w1_val.shape[0] + 1,
+                                   conv_2objects_train.input_shape[1] - w1_val.shape[1] + 1, w1_val.shape[3])) * a_hat
 
             I_hat_from_yhat_one_hot = tf.nn.conv2d_transpose(act1_hat_from_one_hot, w1,
                                                      output_shape=[conv_2objects_train.bs,
@@ -97,16 +107,10 @@ def main():
                                                      strides=[1, 1, 1, 1], padding='VALID')
 
         # visualize weights of layer 1
-        w1_val = sess.run(w1)
-        w1_init_val = sess.run(w1_init)
         if not os.path.exists(os.path.join(viz_path, "w1")):
             os.mkdir(os.path.join(viz_path, "w1"))
         save_images([w1_val[:,:,:,i] - w1_init_val[:,:,:,i] for i in range(w1_val.shape[-1])], \
                     [str(i) + ".png" for i in range(w1_val.shape[-1])], os.path.join(viz_path, "w1"), dim=w1_val.shape[0:-1])
-
-        # softmax filter
-        w_soft_val = sess.run(w_soft)
-        w_soft_init_val = sess.run(w_soft_init)
 
         # visualize I
         I = train_X[0:  conv_2objects_train.bs]
