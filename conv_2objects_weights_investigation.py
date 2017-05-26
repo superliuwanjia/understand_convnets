@@ -63,8 +63,6 @@ def main():
             u_soft = tf.get_collection("u_soft")[0]
             yhat = tf.get_collection("yhat")[0]
             predict = tf.get_collection("predict")[0]
-            X = tf.get_collection("X")
-            y = tf.get_collection("y")
 
             # Reconstruct the input image
             I_hat_from_u1 = tf.nn.conv2d_transpose(u1, w1, output_shape=[conv_2objects_train.bs, 250, 250, 1],
@@ -81,7 +79,7 @@ def main():
         # visualize reconstruction from u1
         w_soft_val = sess.run(w_soft)
         w_soft_init_val = sess.run(w_soft_init)
-        I_hat_from_u1_val = sess.run(I_hat_from_u1, feed_dict={X: test_X, y: test_y})
+        I_hat_from_u1_val = sess.run(I_hat_from_u1, feed_dict={"X": test_X, "y": test_y})
         save_images([I_hat_from_u1_val[i,:,:,:] for i in range(I_hat_from_u1_val.shape[0])], \
                     [str(i) + ".png" for i in range(I_hat_from_u1_val.shape[0])], os.path.join(viz_path, "I_hat_from_u1"), dim=(250,250,1))
 
