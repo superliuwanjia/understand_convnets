@@ -106,6 +106,18 @@ def main():
                                                                    conv_2objects_train.input_shape[2]],
                                                      strides=[1, 1, 1, 1], padding='VALID')
 
+            u1_hat_from_one_hot = tf.reshape((tf.matmul(yhat_one_hot, tf.transpose(w_soft))),
+                                             (-1, conv_2objects_train.input_shape[0] - w1_val.shape[0] + 1,
+                                              conv_2objects_train.input_shape[1] - w1_val.shape[1] + 1,
+                                              w1_val.shape[3]))
+
+            I_hat_from_class_path = tf.nn.conv2d_transpose(u1_hat_from_one_hot, w1,
+                                                             output_shape=[conv_2objects_train.bs,
+                                                                           conv_2objects_train.input_shape[0],
+                                                                           conv_2objects_train.input_shape[1],
+                                                                           conv_2objects_train.input_shape[2]],
+                                                             strides=[1, 1, 1, 1], padding='VALID')
+
         # visualize weights of layer 1
         if not os.path.exists(os.path.join(viz_path, "w1")):
             os.mkdir(os.path.join(viz_path, "w1"))
@@ -145,6 +157,14 @@ def main():
         save_images([I_hat_from_yhat_one_hot_val[i, :, :, :] for i in range(I_hat_from_yhat_one_hot_val.shape[0])],
                     [str(i) + ".png" for i in range(I_hat_from_yhat_one_hot_val.shape[0])],
                     os.path.join(viz_path, "I_hat_from_yhat_one_hot"), dim=conv_2objects_train.input_shape)
+
+        # visualize class path
+        I_hat_from_class_path_val = sess.run(I_hat_from_class_path,
+                                               feed_dict={X: train_X[0:  conv_2objects_train.bs],
+                                                          y: train_y[0:  conv_2objects_train.bs]})
+        save_images([I_hat_from_class_path_val[i, :, :, :] for i in range(I_hat_from_class_path_val.shape[0])],
+                    [str(i) + ".png" for i in range(I_hat_from_class_path_val.shape[0])],
+                    os.path.join(viz_path, "I_hat_from_class_path"), dim=conv_2objects_train.input_shape)
 
 
         # save_images([np.matmul(w, soft)[:, i][0:w.shape[0] - 1, ] for i in range(soft.shape[1])], \
