@@ -75,6 +75,8 @@ def main():
                                                                    conv_2objects_train.input_shape[2]],
                                                     strides=[1, 1, 1, 1], padding='VALID')
 
+            # h_hat = tf.matmul(yhat, tf.transpose(w_soft))
+
         # visualize weights of layer 1
         w1_val = sess.run(w1)
         w1_init_val = sess.run(w1_init)
