@@ -7,12 +7,15 @@ import one_layer_2objects_train
 RANDOM_SEED = 42
 tf.set_random_seed(RANDOM_SEED)
 
-model = os.path.join("saved_model","one_hidden_2objects_RGB_random_normal_0_1.ckpt")
-graph = os.path.join("saved_model","one_hidden_2objects_RGB_random_normal_0_1.ckpt.meta")
+num_hidden = 100
+model = os.path.join("saved_model","one_hidden_2objects_RGB.ckpt")
+graph = os.path.join("saved_model","one_hidden_2objects_RGB.ckpt.meta")
 
-viz_path = os.path.join("visualizations", "RGB_random_normal_0_1"
+viz_path = os.path.join("visualizations", "RGB")
 img_dim = (250, 250,3)
 
+def normalize_contrast(matrix):
+    return ((matrix - matrix.min())/np.ptp(matrix)*255).astype(np.uint8)
 
 def save_images(images, fns, path, dim=img_dim):
     if not os.path.exists(path):
@@ -36,17 +39,23 @@ def main():
         # restore the weights
         w_hidden = tf.get_collection(tf.GraphKeys.VARIABLES,"w_hidden")[0]
         w_soft = tf.get_collection(tf.GraphKeys.VARIABLES,"w_soft")[0]
-        w_mul = tf.matmul(w_hidden, w_soft)
+        soft_bias = tf.get_collection(tf.GraphKeys.VARIABLES,"soft_bias")[0]
+        w_mul = tf.matmul(w_hidden, w_soft) + soft_bias
 		
         print (w_hidden.shape)
         print (w_soft.shape)
         
         # restore the training data
         train_X, test_X, train_y, test_y, train_fn, test_fn = one_layer_2objects_train.get_data()
-		
+ 
+        # just to pick a few to vizualize. image is huge
+        to_viz = [0,400]
+        train_X = train_X[to_viz,:]
+        train_y = train_y[to_viz,:]	
+
         # Layer's sizes
         input_size = train_X.shape[1]
-        hidden_size = 100            
+        hidden_size = num_hidden         
         output_size = train_y.shape[1]
 
         
@@ -55,50 +64,59 @@ def main():
         y = tf.placeholder("float", shape=[None, output_size], name="y")
 
         # Forward propagation
-        yhat, h, h_before_relu = one_layer_2objects_train.forwardprop(X, w_hidden, w_soft)
+        yhat, h, u = one_layer_2objects_train.forwardprop(X, w_hidden, w_soft, soft_bias)
         predict = tf.argmax(yhat, axis=1)
     
-        # visualize weights
-		
+        # read out weights
+        w_hidden_value = sess.run(w_hidden)	
+        w_soft_value = sess.run(w_soft)
+        w_mul_value = sess.run(w_mul)
+        
 		# hidden weights 
-        save_images([w_hidden[:,i][0:w_hidden.shape[0]-1,] for i in range(w_hidden.shape[1])], \
-                    ["hidden_weights_" + str(i) + ".png" for i in range(w_hidden.shape[1])], \
+        save_images([w_hidden_value[:,i] for i in range(w_hidden_value.shape[1])], \
+                    ["hidden_weights_" + str(i) + ".png" for i in range(w_hidden_value.shape[1])], \
                     os.path.join(viz_path, "hidden_weights"))  
 					
         # hidden_weights * soft_weights
-        save_images([w_mul[:,i][0:w_hidden.shape[0]-1,] for i in range(w_mul.shape[1])], \
-                    ["hidden_multi_soft_" + str(i) + ".png" for i in range(w_mul.shape[1])], \
+        save_images([w_mul_value[:,i] for i in range(w_mul_value.shape[1])], \
+                    ["hidden_multi_soft_" + str(i) + ".png" for i in range(w_mul_value.shape[1])], \
                     os.path.join(viz_path, "hidden_multi_soft_"))  
 
         # hidden weights in a huge image
         side = int(np.sqrt(hidden_size))
         w_stacked = np.concatenate(
                     [np.concatenate( \
-                        [w_hidden[:,side*i+j][0:w_hidden.shape[0]-1,].reshape(img_dim),\
+                        [normalize_contrast(w_hidden_value[:,side*i+j].reshape(img_dim)) \
                         for j in range(side)], axis=1) \
                     for i in range(side)], axis=0)
-
+        print w_stacked.shape
         # visualize filter weights per image
         filter_weights = sess.run(h, feed_dict={X:train_X, y:train_y})
 
-        # copy w_stack num_images time, used to conconate with image filter weights
-        w_stacked = np.concatenate([np.expand_dims(w_stacked, 0)] * train_X.shape[0], axis=0)  
         # put filter weights on the right side of stacked filters
         # filter weights are first scaled to match matrix dimention
-        filter_weights = filter_weights.reshape((filter_weights.shape[0], side, side)) 
-        filter_weights = np.repeat(np.repeat(filter_weights, 250, axis=1), 250, axis=2)
+        filter_weights = filter_weights.reshape((filter_weights.shape[0], side, side))
 
-        # match image channels
-        if len(image_dim) == 3 and image_dim[2] == 3:
-            filter_weights = np.concatenate([np.expand_dims(filter_weights,3)] * image_dim[2],\
-                axis=3)
+        # draw each filter against filter weight image, too large to process as a whole
+        for i, filter_weight in enumerate(filter_weights):
+
+            # normalize contrast for ez view
+            filter_weight = normalize_contrast(filter_weight)
+
+            # match filter wieght dimention with stacked filter matrix dimention
+            filter_weight = np.repeat(np.repeat(filter_weight, 250, axis=0), 250, axis=1)
+
+            # match image channels
+            if len(img_dim) == 3 and img_dim[2] == 3:
+                filter_weight = np.concatenate([np.expand_dims(filter_weight,2)] * img_dim[2],\
+                    axis=2)
          
-        save_images(np.concatenate([w_stacked,filter_weights], axis=2), train_fn, \
-            os.path.join(viz_path, "weights_of_filters_per_image"),dim=None)
+            save_images([np.concatenate([w_stacked,filter_weight], axis=1)], [train_fn[i]], \
+                os.path.join(viz_path, "weights_of_filters_per_image"),dim=None)
 
-        yhat_p = tf.placeholder("float", shape=[None, y_size], name="yhap_p")
 
-            
+        yhat_p = tf.placeholder("float", shape=[None, output_size], name="yhap_p")
+        
         # w_hidden^T * a^hat * w_soft^T * yhat
         y_type = "u_sm"
         h_hat = tf.matmul(yhat, tf.transpose(w_soft))
@@ -121,11 +139,11 @@ def main():
         all_pass_X = sess.run(all_pass_X, feed_dict={X:train_X, y:train_y})      
        
         # save all reconstructed images
-        save_images(pos_relu_X[:,0:pos_relu_X.shape[1]-1],train_fn, \
+        save_images(pos_relu_X,train_fn, \
             os.path.join(viz_path, "sigma_dot_a_"+y_type)) 
-        save_images(neg_relu_X[:,0:neg_relu_X.shape[1]-1],train_fn, \
+        save_images(neg_relu_X,train_fn, \
             os.path.join(viz_path, "sigma_dot_1-a_"+y_type)) 
-        save_images(all_pass_X[:,0:all_pass_X.shape[1]-1],train_fn, \
+        save_images(all_pass_X,train_fn, \
             os.path.join(viz_path, "sigma_"+y_type)) 
         
        
@@ -151,16 +169,14 @@ def main():
         all_pass_X = sess.run(all_pass_X, feed_dict={X:train_X, y:train_y, yhat_p:train_y})      
        
         # save all reconstructed images
-        save_images(pos_relu_X[:,0:pos_relu_X.shape[1]-1],train_fn, \
+        save_images(pos_relu_X,train_fn, \
             os.path.join(viz_path, "sigma_dot_a_"+y_type)) 
-        save_images(neg_relu_X[:,0:neg_relu_X.shape[1]-1],train_fn, \
+        save_images(neg_relu_X,train_fn, \
             os.path.join(viz_path, "sigma_dot_1-a_"+y_type)) 
-        save_images(all_pass_X[:,0:all_pass_X.shape[1]-1],train_fn, \
+        save_images(all_pass_X,train_fn, \
             os.path.join(viz_path, "sigma_"+y_type)) 
  
 
-
-        
         # w_hidden^T * a^hat * u
         # Relu state
         relu_mask = tf.to_float(tf.greater(u, tf.zeros_like(h)))
@@ -180,11 +196,11 @@ def main():
         all_pass_X = sess.run(all_pass_X, feed_dict={X:train_X, y:train_y})      
        
         # save all reconstructed images
-        save_images(pos_relu_X[:,0:pos_relu_X.shape[1]-1],train_fn, \
+        save_images(pos_relu_X,train_fn, \
             os.path.join(viz_path, "sigma_dot_a_u")) 
-        save_images(neg_relu_X[:,0:neg_relu_X.shape[1]-1],train_fn, \
+        save_images(neg_relu_X,train_fn, \
             os.path.join(viz_path, "sigma_dot_1-a_u")) 
-        save_images(all_pass_X[:,0:all_pass_X.shape[1]-1],train_fn, \
+        save_images(all_pass_X,train_fn, \
             os.path.join(viz_path, "sigma_dot_u")) 
                 
  

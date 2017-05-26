@@ -47,9 +47,9 @@ def get_data():
     Label = np.array(Label)
     fns = np.array(fns)
 	
-    print (X.shape)
-    print (Label.shape)
-
+    #print (X.shape)
+    #print (Label.shape)
+ 
     # Convert into one-hot vectors
     num_labels = len(np.unique(Label))
     Y_onehot = np.eye(num_labels)[Label]
