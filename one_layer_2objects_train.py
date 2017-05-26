@@ -19,13 +19,7 @@ random.seed(RANDOM_SEED)
 tf.set_random_seed(RANDOM_SEED)
 np.random.seed(RANDOM_SEED)
 
-image_folder = os.path.join("images/2objects/")
-
-def init_weights(shape, name):
-    """ Weight initialization """
-    weights = tf.random_normal(shape, stddev=init_std)
-    return tf.Variable(weights, name=name)
-
+image_folder = os.path.join("../images/2objects/")
 
 def forwardprop(X, w_hidden, w_soft, hidden_bias, soft_bias):
     """
@@ -86,13 +80,17 @@ def main():
     y = tf.placeholder("float", shape=[None, train_y.shape[1]], name="y")
 
     # Weight initializations
-    w_hidden = init_weights((train_X.shape[1], num_hidden), "w_hidden")
-    w_soft = init_weights((num_hidden, train_y.shape[1]), "w_soft")
+    w_hidden = tf.Variable(tf.random_normal((train_X.shape[1], num_hidden), stddev=init_std),
+                      name="w_hidden", trainable=True)
+    w_soft = tf.Variable(tf.random_normal((num_hidden, train_y.shape[1]), stddev=init_std),
+                      name="w_soft", trainable=True)
 	
     # bia initializations
-    hidden_bias = init_weights((1, num_hidden), "hidden_bias")
-    soft_bias = init_weights((1, train_y.shape[1]), "soft_bias")
-
+    hidden_bias = tf.Variable(tf.random_normal((1, num_hidden), stddev=init_std),
+                      name="hidden_bias", trainable=True)
+    soft_bias = tf.Variable(tf.random_normal((1, train_y.shape[1]), stddev=init_std),
+                      name="soft_bias", trainable=True)
+	
     # Forward propagation
     yhat, h, h_before_relu = forwardprop(X, w_hidden, w_soft, hidden_bias, soft_bias)
     predict = tf.argmax(yhat, axis=1)
