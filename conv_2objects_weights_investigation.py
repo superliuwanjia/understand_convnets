@@ -47,10 +47,6 @@ def main():
             x_size = train_X.shape[1]  # Number of input nodes
             y_size = train_y.shape[1]  # Number of outcomes
 
-            # Symbols
-            X = tf.placeholder("float", shape=[None, x_size], name="x")
-            y = tf.placeholder("float", shape=[None, y_size], name="y")
-
             # Weight initializations
             w1 = tf.get_collection(tf.GraphKeys.VARIABLES, "w1")[0]
             w_soft = tf.get_collection(tf.GraphKeys.VARIABLES, "w_soft")[0]
@@ -79,7 +75,7 @@ def main():
         # visualize reconstruction from u1
         w_soft_val = sess.run(w_soft)
         w_soft_init_val = sess.run(w_soft_init)
-        I_hat_from_u1_val = sess.run(I_hat_from_u1, feed_dict={"x": test_X, "y": test_y})
+        I_hat_from_u1_val = sess.run(I_hat_from_u1, feed_dict={X: test_X, y: test_y})
         save_images([I_hat_from_u1_val[i,:,:,:] for i in range(I_hat_from_u1_val.shape[0])], \
                     [str(i) + ".png" for i in range(I_hat_from_u1_val.shape[0])], os.path.join(viz_path, "I_hat_from_u1"), dim=(250,250,1))
 
