@@ -102,6 +102,8 @@ def get_data():
 
 def main():
     train_X, test_X, train_y, test_y, train_fn, test_fn, dec_b = get_data()
+    import pdb;
+    pdb.set_trace()
 
     # Layer's sizes
     x_size = train_X.shape[1]  # Number of input nodes
