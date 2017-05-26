@@ -49,6 +49,7 @@ def main():
             # Weight initializations
             w1 = tf.get_collection(tf.GraphKeys.VARIABLES, "w1")[0]
             w_soft = tf.get_collection(tf.GraphKeys.VARIABLES, "w_soft")[0]
+            w1_init = tf.get_collection(tf.GraphKeys.VARIABLES, "w1_init")[0]
 
             # Forward propagation
             u1 = tf.get_collection("u1")[0]
@@ -59,10 +60,11 @@ def main():
 
         # visualize weights
         w1_val = sess.run(w1)
+        w1_val_init = sess.run(w1_init)
         # import pdb; pdb.set_trace()
         if not os.path.exists("saved_model"):
             os.mkdir("saved_model")
-        save_images([w1_val[:,:,:,i] for i in range(w1_val.shape[-1])], \
+        save_images([w1_val[:,:,:,i] - w1_val_init[:,:,:,i] for i in range(w1_val.shape[-1])], \
                     [str(i) + ".png" for i in range(w1_val.shape[-1])], os.path.join(viz_path, "w1"), dim=(32,32,1))
 
         # w_soft_val = sess.run(w_soft)
