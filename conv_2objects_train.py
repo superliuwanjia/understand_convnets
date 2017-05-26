@@ -13,6 +13,8 @@ saved_model_best = "conv_ks_7_nf_64_2objects_RGB_random_init_best.ckpt"
 RANDOM_SEED = 42
 train_test_ratio = 0.8
 input_shape = [250, 250, 3]
+ks1 = [7, 7, input_shape[2]]
+nf1 = 64
 
 random.seed(RANDOM_SEED)
 tf.set_random_seed(RANDOM_SEED)
@@ -116,8 +118,6 @@ def main():
         # reshape the input image
         X_image = tf.reshape(X, [-1, input_shape[0], input_shape[1], input_shape[2]])
         # first layer
-        ks1 = [7, 7, input_shape[2]]
-        nf1 = 64
         h_size = nf1 * (input_shape[0] - ks1[0] + 1) * (input_shape[1] - ks1[1] + 1)  # Number of hidden nodes
         w_conv1, w_conv1_init_val = init_weights([ks1[0], ks1[1], ks1[2], nf1], name="w1")
         w_conv1_init = tf.Variable(w_conv1_init_val, name='w1_init')
