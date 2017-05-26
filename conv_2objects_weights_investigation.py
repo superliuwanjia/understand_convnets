@@ -56,6 +56,7 @@ def main():
             u_soft = tf.get_collection("u_soft")[0]
             yhat = tf.get_collection("yhat")[0]
             predict = tf.get_collection("predict")[0]
+            yhat_one_hot = tf.one_hot(predict, 2)
 
             a_hat = tf.to_float(tf.greater(u1, tf.zeros_like(u1)))
 
@@ -85,6 +86,15 @@ def main():
                                                                    conv_2objects_train.input_shape[1],
                                                                    conv_2objects_train.input_shape[2]],
                                                     strides=[1, 1, 1, 1], padding='VALID')
+
+            act1_hat_from_one_hot = (tf.matmul(yhat_one_hot, tf.transpose(w_soft))) * a_hat
+
+            I_hat_from_yhat_one_hot = tf.nn.conv2d_transpose(act1_hat_from_one_hot, w1,
+                                                     output_shape=[conv_2objects_train.bs,
+                                                                   conv_2objects_train.input_shape[0],
+                                                                   conv_2objects_train.input_shape[1],
+                                                                   conv_2objects_train.input_shape[2]],
+                                                     strides=[1, 1, 1, 1], padding='VALID')
 
         # visualize weights of layer 1
         w1_val = sess.run(w1)
@@ -124,6 +134,13 @@ def main():
         save_images([I_hat_from_yhat_val[i, :, :, :] for i in range(I_hat_from_yhat_val.shape[0])],
                     [str(i) + ".png" for i in range(I_hat_from_yhat_val.shape[0])],
                     os.path.join(viz_path, "I_hat_from_yhat"), dim=conv_2objects_train.input_shape)
+
+        # visualize reconstruction from y_hat_one_hot
+        I_hat_from_yhat_one_hot_val = sess.run(I_hat_from_yhat_one_hot, feed_dict={X: train_X[0:  conv_2objects_train.bs],
+                                                                   y: train_y[0:  conv_2objects_train.bs]})
+        save_images([I_hat_from_yhat_one_hot_val[i, :, :, :] for i in range(I_hat_from_yhat_one_hot_val.shape[0])],
+                    [str(i) + ".png" for i in range(I_hat_from_yhat_one_hot_val.shape[0])],
+                    os.path.join(viz_path, "I_hat_from_yhat_one_hot"), dim=conv_2objects_train.input_shape)
 
 
         # save_images([np.matmul(w, soft)[:, i][0:w.shape[0] - 1, ] for i in range(soft.shape[1])], \
