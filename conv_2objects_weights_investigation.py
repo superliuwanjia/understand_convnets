@@ -82,12 +82,19 @@ def main():
         w_soft_val = sess.run(w_soft)
         w_soft_init_val = sess.run(w_soft_init)
 
+        # visualize I
+        I = train_X[0:  conv_2objects_train.bs]
+        I = I.reshape([-1, 250, 250, 1])
+        save_images([I[i,:,:,:] for i in range(I.shape[0])], \
+                    [str(i) + ".png" for i in range(I.shape[0])],
+                    os.path.join(viz_path, "I"), dim=(250, 250, 1))
+
         # visualize reconstruction from u1
         I_hat_from_u1_val = sess.run(I_hat_from_u1, feed_dict={X: train_X[0:  conv_2objects_train.bs], y: train_y[0:  conv_2objects_train.bs]})
         save_images([I_hat_from_u1_val[i,:,:,:] for i in range(I_hat_from_u1_val.shape[0])], \
                     [str(i) + ".png" for i in range(I_hat_from_u1_val.shape[0])], os.path.join(viz_path, "I_hat_from_u1"), dim=(250,250,1))
 
-        # visualize reconstruction from u1
+        # visualize reconstruction from act1
         I_hat_from_act1_val = sess.run(I_hat_from_act1, feed_dict={X: train_X[0:  conv_2objects_train.bs],
                                                                y: train_y[0:  conv_2objects_train.bs]})
         save_images([I_hat_from_act1_val[i, :, :, :] for i in range(I_hat_from_act1_val.shape[0])],
