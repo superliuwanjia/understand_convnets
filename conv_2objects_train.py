@@ -5,7 +5,7 @@ import numpy as np
 from scipy import misc
 import glob
 
-bs = 64
+bs = 32
 epochs = 20
 image_mode = "RGB"
 saved_model = "conv_ks_32_2objects_RGB_random_init.ckpt"
@@ -23,7 +23,7 @@ image_folder = os.path.join("./images/2objects/")
 
 def init_weights(shape, name):
     """ Weight initialization """
-    # weights = tf.ones(shape) 
+    # weights = tf.ones(shape)
     weights = tf.random_normal(shape, stddev=1e-3)
     return tf.Variable(weights, name=name), weights
 
@@ -117,7 +117,7 @@ def main():
         X_image = tf.reshape(X, [-1, input_shape[0], input_shape[1], input_shape[2]])
         # first layer
         ks1 = [32, 32, input_shape[2]]
-        nf1 = 32
+        nf1 = 64
         h_size = nf1 * (input_shape[0] - ks1[0] + 1) * (input_shape[1] - ks1[1] + 1)  # Number of hidden nodes
         w_conv1, w_conv1_init_val = init_weights([ks1[0], ks1[1], ks1[2], nf1], name="w1")
         w_conv1_init = tf.Variable(w_conv1_init_val, name='w1_init')
