@@ -89,7 +89,7 @@ def main():
 
         # visualize I
         I = train_X[0:  conv_2objects_train.bs]
-        I = I.reshape([-1, 250, 250, 1])
+        I = I.reshape([-1, conv_2objects_train.input_shape])
         save_images([I[i,:,:,:] for i in range(I.shape[0])], \
                     [str(i) + ".png" for i in range(I.shape[0])],
                     os.path.join(viz_path, "I"), dim=conv_2objects_train.input_shape)
