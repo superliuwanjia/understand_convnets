@@ -74,7 +74,7 @@ def main():
         if not os.path.exists(os.path.join(viz_path, "w1")):
             os.mkdir(os.path.join(viz_path, "w1"))
         save_images([w1_val[:,:,:,i] - w1_init_val[:,:,:,i] for i in range(w1_val.shape[-1])], \
-                    [str(i) + ".png" for i in range(w1_val.shape[-1])], os.path.join(viz_path, "w1"), dim=(250,250,1))
+                    [str(i) + ".png" for i in range(w1_val.shape[-1])], os.path.join(viz_path, "w1"), dim=w1_val.shape[0:-1])
 
         # visualize reconstruction from u1
         w_soft_val = sess.run(w_soft)
