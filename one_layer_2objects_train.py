@@ -10,8 +10,8 @@ bs = 32
 epochs = 4
 num_hidden = 100
 image_mode = "RGB"
-saved_model = "1layer_mlp_2objects_RGB_random_normal_0_1.ckpt"
-init_std = 1
+saved_model = "1layer_mlp_2objects_RGB_random_normal_0_1e-8.ckpt"
+init_std = 1e-8
 RANDOM_SEED = 42
 train_test_ratio = 0.8
 
