@@ -65,8 +65,7 @@ def main():
             predict = tf.get_collection("predict")[0]
 
             # Reconstruct the input image
-            lambdas1 = tf.transpose(w1, (0,1,3,2))
-            I_hat_from_u1 = tf.nn.conv2d_transpose(u1, lambdas1, output_shape=[conv_2objects_train.bs, 250, 250, 1],
+            I_hat_from_u1 = tf.nn.conv2d_transpose(u1, w1, output_shape=[conv_2objects_train.bs, 250, 250, 1],
                                                    strides=[1,1,1,1], padding='valid')
 
         # visualize weights of layer 1
