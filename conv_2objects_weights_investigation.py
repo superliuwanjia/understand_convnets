@@ -43,8 +43,6 @@ def main():
             print "Session loaded."
 
             train_X, test_X, train_y, test_y, train_fn, test_fn, dec_b = conv_2objects_train.get_data()
-            import pdb;
-            pdb.set_trace()
             # Layer's sizes
             x_size = train_X.shape[1]  # Number of input nodes
             y_size = train_y.shape[1]  # Number of outcomes

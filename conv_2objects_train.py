@@ -74,8 +74,6 @@ def get_data():
 
     X = np.array(X) / 225.
 
-    import pdb;
-    pdb.set_trace()
     Label = np.array(Label)
 
     print (X.shape)
