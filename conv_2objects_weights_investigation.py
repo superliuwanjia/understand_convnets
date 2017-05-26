@@ -66,7 +66,7 @@ def main():
 
             # Reconstruct the input image
             I_hat_from_u1 = tf.nn.conv2d_transpose(u1, w1, output_shape=[conv_2objects_train.bs, 250, 250, 1],
-                                                   strides=[1,1,1,1], padding='valid')
+                                                   strides=[1,1,1,1], padding='VALID')
 
         # visualize weights of layer 1
         w1_val = sess.run(w1)
