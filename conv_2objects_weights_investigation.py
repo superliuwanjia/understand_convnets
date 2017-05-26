@@ -67,6 +67,8 @@ def main():
             # Reconstruct the input image
             I_hat_from_u1 = tf.nn.conv2d_transpose(u1, w1, output_shape=[conv_2objects_train.bs, 250, 250, 1],
                                                    strides=[1,1,1,1], padding='VALID')
+            I_hat_from_act1 = tf.nn.conv2d_transpose(act1, w1, output_shape=[conv_2objects_train.bs, 250, 250, 1],
+                                                   strides=[1, 1, 1, 1], padding='VALID')
 
         # visualize weights of layer 1
         w1_val = sess.run(w1)
@@ -76,12 +78,21 @@ def main():
         save_images([w1_val[:,:,:,i] - w1_init_val[:,:,:,i] for i in range(w1_val.shape[-1])], \
                     [str(i) + ".png" for i in range(w1_val.shape[-1])], os.path.join(viz_path, "w1"), dim=w1_val.shape[0:-1])
 
-        # visualize reconstruction from u1
+        # softmax filter
         w_soft_val = sess.run(w_soft)
         w_soft_init_val = sess.run(w_soft_init)
+
+        # visualize reconstruction from u1
         I_hat_from_u1_val = sess.run(I_hat_from_u1, feed_dict={X: train_X[0:  conv_2objects_train.bs], y: train_y[0:  conv_2objects_train.bs]})
         save_images([I_hat_from_u1_val[i,:,:,:] for i in range(I_hat_from_u1_val.shape[0])], \
                     [str(i) + ".png" for i in range(I_hat_from_u1_val.shape[0])], os.path.join(viz_path, "I_hat_from_u1"), dim=(250,250,1))
+
+        # visualize reconstruction from u1
+        I_hat_from_act1_val = sess.run(I_hat_from_act1, feed_dict={X: train_X[0:  conv_2objects_train.bs],
+                                                               y: train_y[0:  conv_2objects_train.bs]})
+        save_images([I_hat_from_act1_val[i, :, :, :] for i in range(I_hat_from_act1_val.shape[0])],
+                    [str(i) + ".png" for i in range(I_hat_from_act1_val.shape[0])],
+                    os.path.join(viz_path, "I_hat_from_act1"), dim=(250, 250, 1))
 
         # save_images([np.matmul(w, soft)[:, i][0:w.shape[0] - 1, ] for i in range(soft.shape[1])], \
         #             [str(i) + ".png" for i in range(soft.shape[1])], os.path.join(viz_path, "w*s"))
