@@ -163,7 +163,7 @@ def main():
         # Train with each example
         for i in range(int(len(train_X) / bs)):
             sess.run(updates, feed_dict={X: train_X[bs * i: bs * i + bs], y: train_y[bs * i: bs * i + bs]})
-            train_accuracy = np.mean(np.argmax(train_y, axis=1) ==
+            train_accuracy = np.mean(np.argmax(train_y[bs * i: bs * i + bs], axis=1) ==
                                      sess.run(predict, feed_dict={X: train_X[bs * i: bs * i + bs], y: train_y[bs * i: bs * i + bs]}))
             test_accuracy = np.mean(np.argmax(test_y, axis=1) ==
                                     sess.run(predict, feed_dict={X: test_X, y: test_y}))
