@@ -176,6 +176,7 @@ def main():
             if not os.path.exists("saved_model"):
                 os.mkdir("saved_model")
             save_path_best = saver.save(sess, os.path.join("saved_model", saved_model_best))
+            test_accu_best = test_accuracy
 
     # sess.run(Op_diff)
     if not os.path.exists("saved_model"):

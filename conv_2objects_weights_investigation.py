@@ -9,11 +9,16 @@ import conv_2objects_train
 RANDOM_SEED = 42
 tf.set_random_seed(RANDOM_SEED)
 
-model = os.path.join("saved_model", "conv_2objects_Grey_best.ckpt")
-graph = os.path.join("saved_model", "conv_2objects_Grey_best.ckpt.meta")
-viz_path = "visualizations"
+model = os.path.join("saved_model", conv_2objects_train.saved_model_best)
+graph = os.path.join("saved_model",conv_2objects_train.saved_model_best + ".meta")
+viz_root = "visualizations"
+viz_folder = conv_2objects_train.saved_model_best.split('.')[0]
+viz_path = os.path.join(viz_root, viz_folder)
+if not os.path.exists(viz_root):
+    os.mkdir(viz_root)
 if not os.path.exists(viz_path):
     os.mkdir(viz_path)
+
 ks1 = [32, 32, 1]
 
 
@@ -62,8 +67,8 @@ def main():
         w1_val = sess.run(w1)
         w1_val_init = sess.run(w1_init)
         # import pdb; pdb.set_trace()
-        if not os.path.exists("saved_model"):
-            os.mkdir("saved_model")
+        if not os.path.exists(os.path.join(viz_path, "w1")):
+            os.mkdir(os.path.join(viz_path, "w1"))
         save_images([w1_val[:,:,:,i] - w1_val_init[:,:,:,i] for i in range(w1_val.shape[-1])], \
                     [str(i) + ".png" for i in range(w1_val.shape[-1])], os.path.join(viz_path, "w1"), dim=(32,32,1))
 
