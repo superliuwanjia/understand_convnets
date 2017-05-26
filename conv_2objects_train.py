@@ -72,9 +72,10 @@ def get_data():
         Label.append(int(os.path.basename(image_path).split("_")[0]))
         X.append(misc.imread(image_path, mode=image_mode).flatten())
 
+    X = np.array(X) / 225.
+
     import pdb;
     pdb.set_trace()
-    X = np.array(X) / 225
     Label = np.array(Label)
 
     print (X.shape)
