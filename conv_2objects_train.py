@@ -6,13 +6,13 @@ from scipy import misc
 import glob
 
 bs = 32
-epochs = 10
-image_mode = "RGB"
-saved_model = "conv_ks_250_nf_64_2objects_RGB_random_init.ckpt"
-saved_model_best = "conv_ks_250_nf_64_2objects_RGB_random_init_best.ckpt"
+epochs = 20
+image_mode = "L"
+saved_model = "conv_ks_250_nf_64_2objects_Grey_random_init.ckpt"
+saved_model_best = "conv_ks_250_nf_64_2objects_Grey_random_init_best.ckpt"
 RANDOM_SEED = 42
 train_test_ratio = 0.8
-input_shape = [250, 250, 3]
+input_shape = [250, 250, 1]
 
 random.seed(RANDOM_SEED)
 tf.set_random_seed(RANDOM_SEED)
