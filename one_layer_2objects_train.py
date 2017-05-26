@@ -7,10 +7,10 @@ import glob
 import time
 
 bs = 32
-epochs = 20
+epochs = 4
 num_hidden = 100
-image_mode = "L"
-saved_model = "1layer_mlp_2objects_L_random_normal_0_1.ckpt"
+image_mode = "RGB"
+saved_model = "1layer_mlp_2objects_RGB_random_normal_0_1.ckpt"
 init_std = 1
 RANDOM_SEED = 42
 train_test_ratio = 0.8
@@ -19,7 +19,7 @@ random.seed(RANDOM_SEED)
 tf.set_random_seed(RANDOM_SEED)
 np.random.seed(RANDOM_SEED)
 
-image_folder = os.path.join("../images/2objects/")
+image_folder = os.path.join("images/2objects/")
 
 def init_weights(shape, name):
     """ Weight initialization """
