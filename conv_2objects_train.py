@@ -8,8 +8,8 @@ import glob
 bs = 32
 epochs = 10
 image_mode = "RGB"
-saved_model = "conv_ks_250_nf_64_2objects_RGB_random_init.ckpt"
-saved_model_best = "conv_ks_250_nf_64_2objects_RGB_random_init_best.ckpt"
+saved_model = "conv_ks_32_nf_64_2objects_RGB_random_init.ckpt"
+saved_model_best = "conv_ks_32_nf_64_2objects_RGB_random_init_best.ckpt"
 RANDOM_SEED = 42
 train_test_ratio = 0.8
 input_shape = [250, 250, 3]
@@ -116,7 +116,7 @@ def main():
         # reshape the input image
         X_image = tf.reshape(X, [-1, input_shape[0], input_shape[1], input_shape[2]])
         # first layer
-        ks1 = [250, 250, input_shape[2]]
+        ks1 = [32, 32, input_shape[2]]
         nf1 = 64
         h_size = nf1 * (input_shape[0] - ks1[0] + 1) * (input_shape[1] - ks1[1] + 1)  # Number of hidden nodes
         w_conv1, w_conv1_init_val = init_weights([ks1[0], ks1[1], ks1[2], nf1], name="w1")
