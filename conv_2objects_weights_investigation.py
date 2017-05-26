@@ -43,6 +43,8 @@ def main():
             print "Session loaded."
 
             train_X, test_X, train_y, test_y, train_fn, test_fn, dec_b = conv_2objects_train.get_data()
+            import pdb;
+            pdb.set_trace()
             # Layer's sizes
             x_size = train_X.shape[1]  # Number of input nodes
             y_size = train_y.shape[1]  # Number of outcomes
@@ -85,7 +87,6 @@ def main():
         # visualize I
         I = train_X[0:  conv_2objects_train.bs]
         I = I.reshape([-1, 250, 250, 1])
-        import pdb; pdb.set_trace()
         save_images([I[i,:,:,:] for i in range(I.shape[0])], \
                     [str(i) + ".png" for i in range(I.shape[0])],
                     os.path.join(viz_path, "I"), dim=(250, 250, 1))
