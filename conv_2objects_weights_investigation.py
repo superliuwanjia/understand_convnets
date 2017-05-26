@@ -19,9 +19,6 @@ if not os.path.exists(viz_root):
 if not os.path.exists(viz_path):
     os.mkdir(viz_path)
 
-ks1 = [32, 32, 1]
-
-
 def save_images(images, fns, path, dim=(250, 250, 3)):
     if not os.path.exists(path):
         os.mkdir(path)
@@ -65,10 +62,18 @@ def main():
             y = net.get_tensor_by_name("y:0")
 
             # Reconstruct the input image
-            I_hat_from_u1 = tf.nn.conv2d_transpose(u1, w1, output_shape=[conv_2objects_train.bs, 250, 250, 1],
+            I_hat_from_u1 = tf.nn.conv2d_transpose(u1, w1,
+                                                   output_shape=[conv_2objects_train.bs,
+                                                                 conv_2objects_train.input_shape[0],
+                                                                 conv_2objects_train.input_shape[1],
+                                                                 conv_2objects_train.input_shape[2]],
                                                    strides=[1,1,1,1], padding='VALID')
-            I_hat_from_act1 = tf.nn.conv2d_transpose(act1, w1, output_shape=[conv_2objects_train.bs, 250, 250, 1],
-                                                   strides=[1, 1, 1, 1], padding='VALID')
+            I_hat_from_act1 = tf.nn.conv2d_transpose(act1, w1,
+                                                     output_shape=[conv_2objects_train.bs,
+                                                                   conv_2objects_train.input_shape[0],
+                                                                   conv_2objects_train.input_shape[1],
+                                                                   conv_2objects_train.input_shape[2]],
+                                                    strides=[1, 1, 1, 1], padding='VALID')
 
         # visualize weights of layer 1
         w1_val = sess.run(w1)
@@ -87,19 +92,20 @@ def main():
         I = I.reshape([-1, 250, 250, 1])
         save_images([I[i,:,:,:] for i in range(I.shape[0])], \
                     [str(i) + ".png" for i in range(I.shape[0])],
-                    os.path.join(viz_path, "I"), dim=(250, 250, 1))
+                    os.path.join(viz_path, "I"), dim=conv_2objects_train.input_shape)
 
         # visualize reconstruction from u1
         I_hat_from_u1_val = sess.run(I_hat_from_u1, feed_dict={X: train_X[0:  conv_2objects_train.bs], y: train_y[0:  conv_2objects_train.bs]})
         save_images([I_hat_from_u1_val[i,:,:,:] for i in range(I_hat_from_u1_val.shape[0])], \
-                    [str(i) + ".png" for i in range(I_hat_from_u1_val.shape[0])], os.path.join(viz_path, "I_hat_from_u1"), dim=(250,250,1))
+                    [str(i) + ".png" for i in range(I_hat_from_u1_val.shape[0])], os.path.join(viz_path, "I_hat_from_u1"),
+                    dim=conv_2objects_train.input_shape)
 
         # visualize reconstruction from act1
         I_hat_from_act1_val = sess.run(I_hat_from_act1, feed_dict={X: train_X[0:  conv_2objects_train.bs],
                                                                y: train_y[0:  conv_2objects_train.bs]})
         save_images([I_hat_from_act1_val[i, :, :, :] for i in range(I_hat_from_act1_val.shape[0])],
                     [str(i) + ".png" for i in range(I_hat_from_act1_val.shape[0])],
-                    os.path.join(viz_path, "I_hat_from_act1"), dim=(250, 250, 1))
+                    os.path.join(viz_path, "I_hat_from_act1"), dim=conv_2objects_train.input_shape)
 
         # save_images([np.matmul(w, soft)[:, i][0:w.shape[0] - 1, ] for i in range(soft.shape[1])], \
         #             [str(i) + ".png" for i in range(soft.shape[1])], os.path.join(viz_path, "w*s"))
