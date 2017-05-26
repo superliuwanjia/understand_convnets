@@ -49,10 +49,10 @@ def main():
         train_X, test_X, train_y, test_y, train_fn, test_fn = one_layer_2objects_train.get_data()
  
         # just to pick a few to vizualize. image is huge
-        to_viz = [0,400]
+        to_viz = np.random.choice(range(train_X.shape[0]), 5)
         train_X = train_X[to_viz,:]
         train_y = train_y[to_viz,:]	
-
+        train_fn = train_fn[to_viz]
         # Layer's sizes
         input_size = train_X.shape[1]
         hidden_size = num_hidden         
@@ -111,7 +111,7 @@ def main():
                 filter_weight = np.concatenate([np.expand_dims(filter_weight,2)] * img_dim[2],\
                     axis=2)
          
-            save_images([np.concatenate([w_stacked,filter_weight], axis=1)], [train_fn[i]], \
+            save_images([np.concatenate([w_stacked,filter_weight], axis=1)], train_fn, \
                 os.path.join(viz_path, "weights_of_filters_per_image"),dim=None)
 
 
