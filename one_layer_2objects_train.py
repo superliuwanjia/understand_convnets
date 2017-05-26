@@ -19,7 +19,7 @@ random.seed(RANDOM_SEED)
 tf.set_random_seed(RANDOM_SEED)
 np.random.seed(RANDOM_SEED)
 
-image_folder = os.path.join("../images/2objects/")
+image_folder = os.path.join("./images/2objects/")
 
 def forwardprop(X, w_hidden, w_soft, soft_bias):
     """
