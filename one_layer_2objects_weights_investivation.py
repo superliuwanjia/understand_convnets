@@ -4,12 +4,17 @@ import tensorflow as tf
 import numpy as np
 import one_layer_2objects_train
 
+import data_loader
+
 RANDOM_SEED = 42
 tf.set_random_seed(RANDOM_SEED)
 
 num_hidden = 400
 viz_dimention =(10, 40)
 img_dim = (250, 250)
+
+image_folder = os.path.join("./images/2objects/")
+image_mode = "L"
 
 model = os.path.join("saved_model","one_hidden_2objects_L_400.ckpt")
 graph = os.path.join("saved_model","one_hidden_2objects_L_400.ckpt.meta")
@@ -47,7 +52,8 @@ def main():
         print (w_soft.shape)
         
         # restore the training data
-        train_X, test_X, train_y, test_y, train_fn, test_fn = one_layer_2objects_train.get_data()
+        train_X, test_X, train_y, test_y, train_fn, test_fn = \
+                data_loader.read_image_data(image_folder, image_mode)
  
         # just to pick a few to vizualize. image is huge
         to_viz = np.random.choice(range(train_X.shape[0]), 5)
