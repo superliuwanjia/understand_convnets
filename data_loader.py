@@ -88,4 +88,3 @@ def mnist():
            Y_train[index_train,:], Y_test[index_test,:], \
            fn_train[index_train], fn_test[index_test]
 
-mnist_2_class()
