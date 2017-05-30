@@ -8,9 +8,9 @@ import time
 
 bs = 32
 epochs = 25
-num_hidden = 100
-image_mode = "RGB"
-saved_model = "one_hidden_2objects_RGB.ckpt"
+num_hidden = 400
+image_mode = "L"
+saved_model = "one_hidden_2objects_L_400.ckpt"
 init_std = 1e-4
 RANDOM_SEED = 42
 train_test_ratio = 0.8

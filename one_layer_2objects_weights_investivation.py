@@ -7,12 +7,14 @@ import one_layer_2objects_train
 RANDOM_SEED = 42
 tf.set_random_seed(RANDOM_SEED)
 
-num_hidden = 100
-model = os.path.join("saved_model","one_hidden_2objects_RGB.ckpt")
-graph = os.path.join("saved_model","one_hidden_2objects_RGB.ckpt.meta")
+num_hidden = 400
+viz_dimention =(10, 40)
+img_dim = (250, 250)
 
-viz_path = os.path.join("visualizations", "RGB")
-img_dim = (250, 250,3)
+model = os.path.join("saved_model","one_hidden_2objects_L_400.ckpt")
+graph = os.path.join("saved_model","one_hidden_2objects_L_400.ckpt.meta")
+
+viz_path = os.path.join("visualizations", "L_400")
 
 def normalize_contrast(matrix):
     return ((matrix - matrix.min())/np.ptp(matrix)*255).astype(np.uint8)
@@ -20,7 +22,6 @@ def normalize_contrast(matrix):
 def save_images(images, fns, path, dim=img_dim):
     if not os.path.exists(path):
         os.mkdir(path)
-
     for i, (image,fn) in enumerate(zip(images, fns)):
         if not dim == None:
             image = np.asarray(tf.reshape(image, dim).eval())
@@ -58,7 +59,6 @@ def main():
         hidden_size = num_hidden         
         output_size = train_y.shape[1]
 
-        
         # Symbols
         X = tf.placeholder("float", shape=[None, input_size], name="X")
         y = tf.placeholder("float", shape=[None, output_size], name="y")
@@ -71,7 +71,7 @@ def main():
         w_hidden_value = sess.run(w_hidden)	
         w_soft_value = sess.run(w_soft)
         w_mul_value = sess.run(w_mul)
-        
+       
 		# hidden weights 
         save_images([w_hidden_value[:,i] for i in range(w_hidden_value.shape[1])], \
                     ["hidden_weights_" + str(i) + ".png" for i in range(w_hidden_value.shape[1])], \
@@ -83,19 +83,23 @@ def main():
                     os.path.join(viz_path, "hidden_multi_soft_"))  
 
         # hidden weights in a huge image
-        side = int(np.sqrt(hidden_size))
+
+        # make sure vizualization dimention matches number of hidden neurons
+        assert np.prod(viz_dimention) == num_hidden
+
         w_stacked = np.concatenate(
                     [np.concatenate( \
-                        [normalize_contrast(w_hidden_value[:,side*i+j].reshape(img_dim)) \
-                        for j in range(side)], axis=1) \
-                    for i in range(side)], axis=0)
+                        [normalize_contrast(w_hidden_value[:,viz_dimention[0]*i+j].reshape(img_dim)) \
+                        for j in range(viz_dimention[1])], axis=1) \
+                    for i in range(viz_dimention[0])], axis=0)
         print w_stacked.shape
         # visualize filter weights per image
         filter_weights = sess.run(h, feed_dict={X:train_X, y:train_y})
 
         # put filter weights on the right side of stacked filters
         # filter weights are first scaled to match matrix dimention
-        filter_weights = filter_weights.reshape((filter_weights.shape[0], side, side))
+        filter_weights = filter_weights.reshape((filter_weights.shape[0], viz_dimention[0], \
+            viz_dimention[1]))
 
         # draw each filter against filter weight image, too large to process as a whole
         for i, filter_weight in enumerate(filter_weights):
