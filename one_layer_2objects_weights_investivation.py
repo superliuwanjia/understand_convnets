@@ -115,7 +115,7 @@ def main():
                 filter_weight = np.concatenate([np.expand_dims(filter_weight,2)] * img_dim[2],\
                     axis=2)
          
-            save_images([np.concatenate([w_stacked,filter_weight], axis=1)], train_fn, \
+            save_images([np.concatenate([w_stacked,filter_weight], axis=1)], [train_fn[i]], \
                 os.path.join(viz_path, "weights_of_filters_per_image"),dim=None)
 
 
