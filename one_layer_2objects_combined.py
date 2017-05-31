@@ -2,24 +2,42 @@ import os
 import random
 import tensorflow as tf
 import numpy as np
+
+import scipy
 from scipy import misc
 import glob
 import time
 
 import data_loader
 bs = 32
-epochs = 50
-num_hidden = 1000
-saved_model = "one_hidden_2objects_translation_RGB_1e-4.ckpt"
-image_folder = os.path.join("./images/2objects_translation/")
+epochs = 25
+num_hidden = 100
+saved_model = "one_hidden_2objects_RGB_1e-4.ckpt"
+image_folder = os.path.join("./images/2objects/")
 image_mode = "RGB"
 init_std = 1e-4
 RANDOM_SEED = 42
+
+viz_dimention =(10, 10)
+img_dim = (250, 250,3)
+viz_path = os.path.join("visualizations", "rgb_epoch_1e-4")
+
 
 random.seed(RANDOM_SEED)
 tf.set_random_seed(RANDOM_SEED)
 np.random.seed(RANDOM_SEED)
 
+def normalize_contrast(matrix):
+    return ((matrix - matrix.min())/np.ptp(matrix)*255).astype(np.uint8)
+
+def save_images(images, fns, path, dim=img_dim):
+    if not os.path.exists(path):
+        os.mkdir(path)
+    for i, (image,fn) in enumerate(zip(images, fns)):
+        if not dim == None:
+            image = np.reshape(image, dim)
+        scipy.misc.imsave(os.path.join(path, fn), image)
+ 
 def forwardprop(X, w_hidden, w_soft, soft_bias):
     """
     Forward-propagation.
@@ -51,12 +69,12 @@ def main():
     w_soft = tf.Variable(tf.random_normal((num_hidden, train_y.shape[1]), stddev=init_std),
                       name="w_soft", trainable=True)
 	
-    w_mul = tf.matmul(w_hidden, w_soft) + soft_bias
     
     # bia initializations
     soft_bias = tf.Variable(0.*tf.random_normal((1, train_y.shape[1]), stddev=init_std), name="soft_bias", trainable=True)
 	
     # Forward propagation
+    w_mul = tf.matmul(w_hidden, w_soft) + soft_bias
     yhat, h, u = forwardprop(X, w_hidden, w_soft, soft_bias)
     predict = tf.argmax(yhat, axis=1)
 
@@ -69,25 +87,18 @@ def main():
 
     # Run SGD
     sess = tf.Session()
+    sess.as_default()      
+
     init = tf.global_variables_initializer()
     sess.run(init)
 
     if not os.path.exists("saved_model"):
         os.mkdir("saved_model")
+    if not os.path.exists(viz_path):
+        os.mkdir(viz_path)
 
     # train & vizualization
     for epoch in range(epochs):
-        for i in range(int(len(train_X)/bs)):
-            sess.run(updates, feed_dict={X: train_X[bs * i: bs * i + bs], y: train_y[bs * i: bs * i + bs]})
-            
-            train_accuracy = np.mean(np.argmax(train_y, axis=1) ==
-                                     sess.run(predict, feed_dict={X: train_X, y: train_y}))
-            test_accuracy = np.mean(np.argmax(test_y, axis=1) ==
-                                    sess.run(predict, feed_dict={X: test_X, y: test_y}))
-
-            print("Epoch = %d, batch = %d, train accuracy = %.2f%%, test accuracy = %.2f%%"
-                  % (epoch + 1, i + 1, 100. * train_accuracy, 100. * test_accuracy))
-
         # all sorts of visualizations, once per epoch
     
         viz_path_current_epoch = os.path.join(viz_path, str(epoch))
@@ -240,6 +251,19 @@ def main():
             os.path.join(viz_path_current_epoch, "sigma_dot_1-a_u")) 
         save_images(all_pass_X,train_fn, \
             os.path.join(viz_path_current_epoch, "sigma_dot_u")) 
+
+        # training 
+        for i in range(int(len(train_X)/bs)):
+            sess.run(updates, feed_dict={X: train_X[bs * i: bs * i + bs], y: train_y[bs * i: bs * i + bs]})
+            
+            train_accuracy = np.mean(np.argmax(train_y, axis=1) ==
+                                     sess.run(predict, feed_dict={X: train_X, y: train_y}))
+            test_accuracy = np.mean(np.argmax(test_y, axis=1) ==
+                                    sess.run(predict, feed_dict={X: test_X, y: test_y}))
+
+            print("Epoch = %d, batch = %d, train accuracy = %.2f%%, test accuracy = %.2f%%"
+                  % (epoch + 1, i + 1, 100. * train_accuracy, 100. * test_accuracy))
+
  
         # save model
         save_path = saver.save(sess, os.path.join("saved_model", saved_model))
