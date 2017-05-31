@@ -8,9 +8,10 @@ import time
 
 import data_loader
 bs = 32
-epochs = 25
-num_hidden = 400
-saved_model = "one_hidden_2objects_L_400.ckpt"
+epochs = 50
+num_hidden = 1000
+saved_model = "one_hidden_2objects_translation_RGB_1e-4.ckpt"
+image_mode = "RGB"
 init_std = 1e-4
 RANDOM_SEED = 42
 
@@ -18,8 +19,7 @@ random.seed(RANDOM_SEED)
 tf.set_random_seed(RANDOM_SEED)
 np.random.seed(RANDOM_SEED)
 
-image_folder = os.path.join("./images/2objects/")
-image_mode = "L"
+image_folder = os.path.join("./images/2objects_translation/")
 
 def forwardprop(X, w_hidden, w_soft, soft_bias):
     """
@@ -71,6 +71,10 @@ def main():
     init = tf.global_variables_initializer()
     sess.run(init)
 
+    if not os.path.exists("saved_model"):
+        os.mkdir("saved_model")
+
+
     for epoch in range(epochs):
         for i in range(int(len(train_X)/bs)):
             sess.run(updates, feed_dict={X: train_X[bs * i: bs * i + bs], y: train_y[bs * i: bs * i + bs]})
@@ -83,11 +87,8 @@ def main():
             print("Epoch = %d, batch = %d, train accuracy = %.2f%%, test accuracy = %.2f%%"
                   % (epoch + 1, i + 1, 100. * train_accuracy, 100. * test_accuracy))
 
-    if not os.path.exists("saved_model"):
-        os.mkdir("saved_model")
-
-    save_path = saver.save(sess, os.path.join("saved_model", saved_model))
-    print("Model saved in file: %s" % save_path)
+        save_path = saver.save(sess, os.path.join("saved_model", saved_model))
+        print("Model saved in file: %s" % save_path)
 
     sess.close()
 

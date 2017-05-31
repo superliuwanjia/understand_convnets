@@ -29,7 +29,8 @@ def read_image_data(image_folder, image_mode, train_test_ratio=0.8):
     X = np.array(X) / 255.
     Label = np.array(Label)
     fns = np.array(fns)
-	
+    
+    print X.shape	
     # Convert into one-hot vectors
     Y_onehot = to_one_hot(Label)
     
@@ -46,7 +47,7 @@ def read_image_data(image_folder, image_mode, train_test_ratio=0.8):
            fns[0:index_cutoff], fns[index_cutoff:]
 
 def mnist_2_class():
-
+    """ Read mnist dataset with only 0 and 1s """
     X_train, X_test, Y_train, Y_test, fn_train, fn_test = mnist()
 
     index_train = np.where((from_one_hot(Y_train).flatten() == 0) | 
@@ -61,6 +62,7 @@ def mnist_2_class():
 
 
 def mnist():
+    """ mnist dataset """
     # read raw data in
     (X_train, y_train), (X_test, y_test) = keras.datasets.mnist.load_data()
     X_train = X_train.reshape((X_train.shape[0], np.prod(X_train.shape[1:])))
