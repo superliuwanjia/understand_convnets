@@ -11,14 +11,14 @@ import time
 import data_loader
 bs = 32
 epochs = 25
-num_hidden = 4
+num_hidden = 16
 saved_model = "one_hidden_2objects_RGB_1e-4.ckpt"
 image_folder = os.path.join("./images/2objects/")
 image_mode = "RGB"
 init_std = 1e-4
 RANDOM_SEED = 0
 
-viz_dimention =(2, 2)
+viz_dimention =(4, 4)
 img_dim = (250, 250,3)
 viz_path = os.path.join("visualizations", "rgb_epoch_1e-4_batch_32")
 num_to_viz = 4
@@ -36,8 +36,8 @@ def save_images(images, fns, path, dim=img_dim):
     for i, (image,fn) in enumerate(zip(images, fns)):
         if not dim == None:
             image = np.reshape(image, dim)
-        scipy.misc.imsave(os.path.join(path, fn), image)
- 
+        #scipy.misc.imsave(os.path.join(path, fn), image,vmin=0,vmax=255)
+        scipy.misc.toimage(image, cmin=0,cmax=255).save(os.path.join(path,fn))
 def forwardprop(X, w_hidden, w_soft, soft_bias):
     """
     Forward-propagation.
@@ -125,11 +125,15 @@ def main():
                         ["hidden_weights_" + str(i) + ".png" for i in range(w_hidden_value.shape[1])], \
                         os.path.join(viz_path_current_epoch, "hidden_weights"))  
             """
-                        
+            # put accuracy into image for vizualization
+            test_accuracy = np.mean(np.argmax(test_y, axis=1) ==
+                                    sess.run(predict, feed_dict={X: test_X, y: test_y}))
+            test_accuracy_pixel = int(test_accuracy * 255)
+                       
             # hidden_weights * soft_weights
-            save_images([w_mul_value[:,i] for i in range(w_mul_value.shape[1])], \
+            save_images([np.concatenate([normalize_contrast(w_mul_value[:,i]).reshape(img_dim), np.ones(img_dim) * test_accuracy_pixel], axis=1) for i in range(w_mul_value.shape[1])], \
                         ["hidden_multi_soft_" + str(i) + ".png" for i in range(w_mul_value.shape[1])], \
-                        os.path.join(viz_path_current_epoch, "hidden_multi_soft_"))  
+                        os.path.join(viz_path_current_epoch, "hidden_multi_soft_"), dim=None)  
 
             # hidden weights in a huge image
 
@@ -164,7 +168,7 @@ def main():
                     filter_weight = np.concatenate([np.expand_dims(filter_weight,2)] * img_dim[2],\
                         axis=2)
              
-                save_images([np.concatenate([w_stacked,filter_weight], axis=1)], [train_fn[i]], \
+                save_images([np.concatenate([w_stacked,filter_weight, np.ones(filter_weight.shape) * test_accuracy_pixel], axis=1)], [train_fn[i]], \
                     os.path.join(viz_path_current_epoch, "weights_of_filters_per_image"),dim=None)
 
 
