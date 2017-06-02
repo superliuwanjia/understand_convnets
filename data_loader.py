@@ -36,7 +36,7 @@ def read_image_data(image_folder, image_mode, train_test_ratio=0.8):
     all_index = np.arange(X.shape[0])
     np.random.shuffle(all_index)
     X = X[all_index, :]
-    Y_onehot = Y_onehot[all_index]
+    Y_onehot = Y_onehot[all_index, :]
     fns = fns[all_index]
 
     index_cutoff = int(X.shape[0] * train_test_ratio)

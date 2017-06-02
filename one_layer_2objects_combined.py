@@ -160,7 +160,7 @@ def main():
                     y_hat = np.concatenate([np.expand_dims(y_hat,2)] * img_dim[2],\
                         axis=2)
                 
-                save_images([np.concatenate([y_hat_stacked,y_hat, np.ones((img_dim)) * test_accuracy_pixel], axis=1)], [train_fn[i]], \
+                save_images([np.concatenate([y_hat_stacked,y_hat, np.ones((img_dim)) * test_accuracy_pixel], axis=1)], [train_fn_to_viz[i]], \
                     os.path.join(viz_path_current_epoch, "fc_activation"),dim=None)
 
 
@@ -196,7 +196,7 @@ def main():
                     filter_weight = np.concatenate([np.expand_dims(filter_weight,2)] * img_dim[2],\
                         axis=2)
              
-                save_images([np.concatenate([w_stacked,filter_weight, np.ones(filter_weight.shape) * test_accuracy_pixel], axis=1)], [train_fn[i]], \
+                save_images([np.concatenate([w_stacked,filter_weight, np.ones(filter_weight.shape) * test_accuracy_pixel], axis=1)], [train_fn_to_viz[i]], \
                     os.path.join(viz_path_current_epoch, "weights_of_filters_per_image"),dim=None)
 
 
