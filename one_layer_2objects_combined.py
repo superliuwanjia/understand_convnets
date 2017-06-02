@@ -9,19 +9,19 @@ import glob
 import time
 
 import data_loader
-bs = 1
+bs = 32
 epochs = 25
 num_hidden = 4
 saved_model = "one_hidden_2objects_RGB_1e-4.ckpt"
 image_folder = os.path.join("./images/2objects/")
 image_mode = "RGB"
 init_std = 1e-4
-RANDOM_SEED = 42
+RANDOM_SEED = 0
 
 viz_dimention =(2, 2)
 img_dim = (250, 250,3)
-viz_path = os.path.join("visualizations", "rgb_epoch_1e-4_batch_1")
-num_to_viz = 1
+viz_path = os.path.join("visualizations", "rgb_epoch_1e-4_batch_32")
+num_to_viz = 4
 
 random.seed(RANDOM_SEED)
 tf.set_random_seed(RANDOM_SEED)
