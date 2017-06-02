@@ -130,12 +130,41 @@ def main():
                                     sess.run(predict, feed_dict={X: test_X, y: test_y}))
             test_accuracy_pixel = int(test_accuracy * 255)
                        
-            # hidden_weights * soft_weights
+            # visualize hidden_weights * soft_weights
             save_images([np.concatenate([normalize_contrast(w_mul_value[:,i]).reshape(img_dim), np.ones(img_dim) * test_accuracy_pixel], axis=1) for i in range(w_mul_value.shape[1])], \
                         ["hidden_multi_soft_" + str(i) + ".png" for i in range(w_mul_value.shape[1])], \
                         os.path.join(viz_path_current_epoch, "hidden_multi_soft_"), dim=None)  
 
-            # hidden weights in a huge image
+            ##### visualize y-_hat per image
+            y_hat_stacked = np.concatenate( \
+                            [normalize_contrast(w_mul_value[:,i].reshape(img_dim)) \
+                            for i in range(2)], axis=1)
+ 
+            y_hats = sess.run(yhat, feed_dict={X:train_X_to_viz, y:train_y_to_viz})
+
+            # put y_hats on the right side of stacked w_mul
+            # y_hats are first scaled to match matrix dimention
+            y_hats = y_hats.reshape((train_X_to_viz.shape[0],1,2))
+
+            # draw each filter against filter weight image, too large to process as a whole
+            for i, y_hat in enumerate(y_hats):
+
+                # normalize contrast for ez view
+                y_hat = normalize_contrast(y_hat)
+
+                # match y_hat dimention
+                y_hat = np.repeat(np.repeat(y_hat, img_dim[0], axis=0), img_dim[1], axis=1)
+
+                # match image channels
+                if len(img_dim) == 3 and img_dim[2] == 3:
+                    y_hat = np.concatenate([np.expand_dims(y_hat,2)] * img_dim[2],\
+                        axis=2)
+                
+                save_images([np.concatenate([y_hat_stacked,y_hat, np.ones((img_dim)) * test_accuracy_pixel], axis=1)], [train_fn[i]], \
+                    os.path.join(viz_path_current_epoch, "fc_activation"),dim=None)
+
+
+            #### visualize filter weights per image
 
             # make sure vizualization dimention matches number of hidden neurons
             assert np.prod(viz_dimention) == num_hidden
@@ -145,8 +174,7 @@ def main():
                             [normalize_contrast(w_hidden_value[:,viz_dimention[0]*i+j].reshape(img_dim)) \
                             for j in range(viz_dimention[1])], axis=1) \
                         for i in range(viz_dimention[0])], axis=0)
-            print w_stacked.shape
-            # visualize filter weights per image
+            
             filter_weights = sess.run(h, feed_dict={X:train_X_to_viz, y:train_y_to_viz})
 
             # put filter weights on the right side of stacked filters
@@ -161,7 +189,7 @@ def main():
                 filter_weight = normalize_contrast(filter_weight)
 
                 # match filter wieght dimention with stacked filter matrix dimention
-                filter_weight = np.repeat(np.repeat(filter_weight, 250, axis=0), 250, axis=1)
+                filter_weight = np.repeat(np.repeat(filter_weight, img_dim[0], axis=0), img_dim[1], axis=1)
 
                 # match image channels
                 if len(img_dim) == 3 and img_dim[2] == 3:
