@@ -224,11 +224,11 @@ def main():
             all_pass_X = sess.run(all_pass_X, feed_dict={X:train_X_to_viz, y:train_y_to_viz})      
            
             # save all reconstructed images
-            save_images(pos_relu_X,train_fn, \
+            save_images(pos_relu_X,train_fn_to_viz, \
                 os.path.join(viz_path_current_epoch, "sigma_dot_a_"+y_type)) 
-            save_images(neg_relu_X,train_fn, \
+            save_images(neg_relu_X,train_fn_to_viz, \
                 os.path.join(viz_path_current_epoch, "sigma_dot_1-a_"+y_type)) 
-            save_images(all_pass_X,train_fn, \
+            save_images(all_pass_X,train_fn_to_viz, \
                 os.path.join(viz_path_current_epoch, "sigma_"+y_type)) 
             
            
@@ -254,11 +254,11 @@ def main():
             all_pass_X = sess.run(all_pass_X, feed_dict={X:train_X_to_viz, y:train_y_to_viz, yhat_p:train_y_to_viz})      
            
             # save all reconstructed images
-            save_images(pos_relu_X,train_fn, \
+            save_images(pos_relu_X,train_fn_to_viz, \
                 os.path.join(viz_path_current_epoch, "sigma_dot_a_"+y_type)) 
-            save_images(neg_relu_X,train_fn, \
+            save_images(neg_relu_X,train_fn_to_viz, \
                 os.path.join(viz_path_current_epoch, "sigma_dot_1-a_"+y_type)) 
-            save_images(all_pass_X,train_fn, \
+            save_images(all_pass_X,train_fn_to_viz, \
                 os.path.join(viz_path_current_epoch, "sigma_"+y_type)) 
      
 
@@ -281,11 +281,11 @@ def main():
             all_pass_X = sess.run(all_pass_X, feed_dict={X:train_X_to_viz, y:train_y_to_viz})      
            
             # save all reconstructed images
-            save_images(pos_relu_X,train_fn, \
+            save_images(pos_relu_X,train_fn_to_viz, \
                 os.path.join(viz_path_current_epoch, "sigma_dot_a_u")) 
-            save_images(neg_relu_X,train_fn, \
+            save_images(neg_relu_X,train_fn_to_viz, \
                 os.path.join(viz_path_current_epoch, "sigma_dot_1-a_u")) 
-            save_images(all_pass_X,train_fn, \
+            save_images(all_pass_X,train_fn_to_viz, \
                 os.path.join(viz_path_current_epoch, "sigma_dot_u")) 
             """
             # training 
