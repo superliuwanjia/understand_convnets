@@ -15,7 +15,7 @@ def to_one_hot(label):
 def from_one_hot(one_hot):
     return np.argmax(one_hot,axis=1)
 
-def read_image_data(image_folder, image_mode, train_test_ratio=0.8):
+def read_image_data(image_folder, image_mode, train_test_ratio=0.8, shuffle=1):
     """ Read the data set and split them into training and test sets """
     X = []
     Label = []
@@ -34,7 +34,8 @@ def read_image_data(image_folder, image_mode, train_test_ratio=0.8):
     Y_onehot = to_one_hot(Label)
     
     all_index = np.arange(X.shape[0])
-    np.random.shuffle(all_index)
+    for _ in range(shuffle):
+        np.random.shuffle(all_index)
     X = X[all_index, :]
     Y_onehot = Y_onehot[all_index, :]
     fns = fns[all_index]

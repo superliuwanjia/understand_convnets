@@ -17,11 +17,12 @@ image_folder = os.path.join("./images/2objects/")
 image_mode = "RGB"
 init_std = 1e-4
 RANDOM_SEED = 0
+shuffle = 0
 
 viz_dimention =(4, 4)
 img_dim = (250, 250,3)
-viz_path = os.path.join("visualizations", "rgb_epoch_1e-4_batch_32")
-num_to_viz = 4
+viz_path = os.path.join("visualizations", "rgb_epoch_1e-4_batch_32_h_16_shuffle_0_with_bias")
+num_to_viz = 5
 
 random.seed(RANDOM_SEED)
 tf.set_random_seed(RANDOM_SEED)
@@ -38,12 +39,12 @@ def save_images(images, fns, path, dim=img_dim):
             image = np.reshape(image, dim)
         #scipy.misc.imsave(os.path.join(path, fn), image,vmin=0,vmax=255)
         scipy.misc.toimage(image, cmin=0,cmax=255).save(os.path.join(path,fn))
-def forwardprop(X, w_hidden, w_soft, soft_bias):
+def forwardprop(X, w_hidden, hidden_bias, w_soft, soft_bias):
     """
     Forward-propagation.
     IMPORTANT: yhat is not softmax since TensorFlow's softmax_cross_entropy_with_logits() does that internally.
     """
-    h_before_relu = tf.matmul(X, w_hidden)
+    h_before_relu = tf.matmul(X, w_hidden) + hidden_bias
     h = tf.nn.relu(h_before_relu)
     yhat = tf.matmul(h, w_soft) + soft_bias
     return yhat, h, h_before_relu
@@ -72,10 +73,11 @@ def main():
     
     # bia initializations
     soft_bias = tf.Variable(0.*tf.random_normal((1, train_y.shape[1]), stddev=init_std), name="soft_bias", trainable=True)
+    hidden_bias = tf.Variable(0.*tf.random_normal((1, hidden_size), stddev=init_std), name="hidden_bias", trainable=True)
 	
     # Forward propagation
     w_mul = tf.matmul(w_hidden, w_soft) + soft_bias
-    yhat, h, u = forwardprop(X, w_hidden, w_soft, soft_bias)
+    yhat, h, u = forwardprop(X, w_hidden, hidden_bias, w_soft, soft_bias)
     predict = tf.argmax(yhat, axis=1)
 
     # Backward propagation
@@ -84,10 +86,17 @@ def main():
 
     # just to pick a few to vizualize. image is huge
     to_viz = np.random.choice(range(train_X.shape[0]), num_to_viz)
+    
     train_X_to_viz = train_X[to_viz,:]
     train_y_to_viz = train_y[to_viz,:]	
     train_fn_to_viz = train_fn[to_viz]
-
+    
+    for _ in range(shuffle):
+        shuffle_index = range(train_X.shape[0]) 
+        random.shuffle(shuffle_index)
+        train_X = train_X[shuffle_index,:]
+        train_y = train_y[shuffle_index,:]
+        train_fn = train_fn[shuffle_index]
 
     # Saver
     saver = tf.train.Saver()
