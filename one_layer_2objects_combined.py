@@ -17,11 +17,14 @@ image_folder = os.path.join("./images/2objects/")
 image_mode = "RGB"
 init_std = 1e-4
 RANDOM_SEED = 0
+# number of shuffles applied on the training set
 shuffle = 0
+# hidden layer activation type
+activation = tf.nn.tanh
 
 viz_dimention =(4, 4)
 img_dim = (250, 250,3)
-viz_path = os.path.join("visualizations", "rgb_epoch_1e-4_batch_32_h_16_shuffle_0_with_bias")
+viz_path = os.path.join("visualizations", "rgb_epoch_1e-4_batch_32_h_16_shuffle_0_with_bias_tanh")
 num_to_viz = 5
 
 random.seed(RANDOM_SEED)
@@ -39,13 +42,13 @@ def save_images(images, fns, path, dim=img_dim):
             image = np.reshape(image, dim)
         #scipy.misc.imsave(os.path.join(path, fn), image,vmin=0,vmax=255)
         scipy.misc.toimage(image, cmin=0,cmax=255).save(os.path.join(path,fn))
-def forwardprop(X, w_hidden, hidden_bias, w_soft, soft_bias):
+def forwardprop(X, w_hidden, hidden_bias, w_soft, soft_bias, activation):
     """
     Forward-propagation.
     IMPORTANT: yhat is not softmax since TensorFlow's softmax_cross_entropy_with_logits() does that internally.
     """
     h_before_relu = tf.matmul(X, w_hidden) + hidden_bias
-    h = tf.nn.relu(h_before_relu)
+    h = activation(h_before_relu)
     yhat = tf.matmul(h, w_soft) + soft_bias
     return yhat, h, h_before_relu
 
@@ -77,7 +80,7 @@ def main():
 	
     # Forward propagation
     w_mul = tf.matmul(w_hidden, w_soft) + soft_bias
-    yhat, h, u = forwardprop(X, w_hidden, hidden_bias, w_soft, soft_bias)
+    yhat, h, u = forwardprop(X, w_hidden, hidden_bias, w_soft, soft_bias, activation)
     predict = tf.argmax(yhat, axis=1)
 
     # Backward propagation
