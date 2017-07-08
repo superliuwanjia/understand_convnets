@@ -6,20 +6,20 @@ from scipy import misc
 import glob
 import time
 
+import data_loader
 bs = 32
-epochs = 25
-num_hidden = 400
-image_mode = "L"
-saved_model = "one_hidden_2objects_L_400.ckpt"
+epochs = 50
+num_hidden = 1000
+saved_model = "one_hidden_2objects_translation_RGB_1e-4.ckpt"
+image_mode = "RGB"
 init_std = 1e-4
 RANDOM_SEED = 42
-train_test_ratio = 0.8
 
 random.seed(RANDOM_SEED)
 tf.set_random_seed(RANDOM_SEED)
 np.random.seed(RANDOM_SEED)
 
-image_folder = os.path.join("./images/2objects/")
+image_folder = os.path.join("./images/2objects_translation/")
 
 def forwardprop(X, w_hidden, w_soft, soft_bias):
     """
@@ -32,43 +32,10 @@ def forwardprop(X, w_hidden, w_soft, soft_bias):
     return yhat, h, h_before_relu
 
 
-def get_data():
-    """ Read the data set and split them into training and test sets """
-    X = []
-    Label = []
-    fns = []
-	
-    for image_path in glob.glob(os.path.join(image_folder, "*.png")):
-        fns.append(os.path.basename(image_path))
-        Label.append(int(os.path.basename(image_path).split("_")[0]))
-        image = X.append(misc.imread(image_path, mode=image_mode).flatten())
-		
-    X = np.array(X) / 255.
-    Label = np.array(Label)
-    fns = np.array(fns)
-	
-    #print (X.shape)
-    #print (Label.shape)
- 
-    # Convert into one-hot vectors
-    num_labels = len(np.unique(Label))
-    Y_onehot = np.eye(num_labels)[Label]
-
-    all_index = np.arange(X.shape[0])
-    np.random.shuffle(all_index)
-    X = X[all_index, :]
-    Y_onehot = Y_onehot[all_index]
-    fns = fns[all_index]
-
-    index_cutoff = int(X.shape[0] * train_test_ratio)
-
-    return X[0:index_cutoff, :], X[index_cutoff:, :], \
-           Y_onehot[0:index_cutoff, :], Y_onehot[index_cutoff:, :], \
-           fns[0:index_cutoff], fns[index_cutoff:]
-
 def main():
 
-    train_X, test_X, train_y, test_y, train_fn, test_fn = get_data()
+    train_X, test_X, train_y, test_y, train_fn, test_fn = \
+            data_loader.read_image_data(image_folder, image_mode)
 
     # Layer's sizes
     input_size = train_X.shape[1]
@@ -104,6 +71,10 @@ def main():
     init = tf.global_variables_initializer()
     sess.run(init)
 
+    if not os.path.exists("saved_model"):
+        os.mkdir("saved_model")
+
+
     for epoch in range(epochs):
         for i in range(int(len(train_X)/bs)):
             sess.run(updates, feed_dict={X: train_X[bs * i: bs * i + bs], y: train_y[bs * i: bs * i + bs]})
@@ -116,11 +87,8 @@ def main():
             print("Epoch = %d, batch = %d, train accuracy = %.2f%%, test accuracy = %.2f%%"
                   % (epoch + 1, i + 1, 100. * train_accuracy, 100. * test_accuracy))
 
-    if not os.path.exists("saved_model"):
-        os.mkdir("saved_model")
-
-    save_path = saver.save(sess, os.path.join("saved_model", saved_model))
-    print("Model saved in file: %s" % save_path)
+        save_path = saver.save(sess, os.path.join("saved_model", saved_model))
+        print("Model saved in file: %s" % save_path)
 
     sess.close()
 
