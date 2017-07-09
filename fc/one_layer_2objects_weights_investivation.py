@@ -1,12 +1,11 @@
 import os
+
+import numpy as np
 import scipy.misc
 import tensorflow as tf
-import numpy as np
-import one_layer_2objects_train
 
 import data_loader
-
-from scipy import misc
+import one_layer_2objects_train
 
 RANDOM_SEED = 42
 tf.set_random_seed(RANDOM_SEED)
