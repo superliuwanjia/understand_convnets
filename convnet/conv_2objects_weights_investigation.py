@@ -1,8 +1,7 @@
 import os
-import scipy.misc
 
+import scipy.misc
 import tensorflow as tf
-import numpy as np
 
 import conv_2objects_train
 
@@ -10,7 +9,7 @@ RANDOM_SEED = 42
 tf.set_random_seed(RANDOM_SEED)
 
 model = os.path.join("saved_model", conv_2objects_train.saved_model_best)
-graph = os.path.join("saved_model",conv_2objects_train.saved_model_best + ".meta")
+graph = os.path.join("saved_model", conv_2objects_train.saved_model_best + ".meta")
 viz_root = "visualizations"
 viz_folder = conv_2objects_train.saved_model_best.split('.')[0]
 viz_path = os.path.join(viz_root, viz_folder)
@@ -82,29 +81,29 @@ def main():
                                                                    conv_2objects_train.input_shape[0],
                                                                    conv_2objects_train.input_shape[1],
                                                                    conv_2objects_train.input_shape[2]],
-                                                    strides=[1, 1, 1, 1], padding='VALID')
+                                                     strides=[1, 1, 1, 1], padding='VALID')
 
             act1_hat = tf.multiply(tf.reshape((tf.matmul(yhat, tf.transpose(w_soft))),
-                                  (-1, conv_2objects_train.input_shape[0] - w1_val.shape[0] + 1,
-                                   conv_2objects_train.input_shape[1] - w1_val.shape[1] + 1, w1_val.shape[3])), a_hat)
+                                              (-1, conv_2objects_train.input_shape[0] - w1_val.shape[0] + 1,
+                                               conv_2objects_train.input_shape[1] - w1_val.shape[1] + 1, w1_val.shape[3])), a_hat)
 
             I_hat_from_yhat = tf.nn.conv2d_transpose(act1_hat, w1,
                                                      output_shape=[conv_2objects_train.bs,
                                                                    conv_2objects_train.input_shape[0],
                                                                    conv_2objects_train.input_shape[1],
                                                                    conv_2objects_train.input_shape[2]],
-                                                    strides=[1, 1, 1, 1], padding='VALID')
+                                                     strides=[1, 1, 1, 1], padding='VALID')
 
             act1_hat_from_one_hot = tf.multiply(tf.reshape((tf.matmul(yhat_one_hot, tf.transpose(w_soft))),
-                                  (-1, conv_2objects_train.input_shape[0] - w1_val.shape[0] + 1,
-                                   conv_2objects_train.input_shape[1] - w1_val.shape[1] + 1, w1_val.shape[3])), a_hat)
+                                                           (-1, conv_2objects_train.input_shape[0] - w1_val.shape[0] + 1,
+                                                            conv_2objects_train.input_shape[1] - w1_val.shape[1] + 1, w1_val.shape[3])), a_hat)
 
             I_hat_from_yhat_one_hot = tf.nn.conv2d_transpose(act1_hat_from_one_hot, w1,
-                                                     output_shape=[conv_2objects_train.bs,
-                                                                   conv_2objects_train.input_shape[0],
-                                                                   conv_2objects_train.input_shape[1],
-                                                                   conv_2objects_train.input_shape[2]],
-                                                     strides=[1, 1, 1, 1], padding='VALID')
+                                                             output_shape=[conv_2objects_train.bs,
+                                                                           conv_2objects_train.input_shape[0],
+                                                                           conv_2objects_train.input_shape[1],
+                                                                           conv_2objects_train.input_shape[2]],
+                                                             strides=[1, 1, 1, 1], padding='VALID')
 
             u1_hat_from_one_hot = tf.reshape((tf.matmul(yhat_one_hot, tf.transpose(w_soft))),
                                              (-1, conv_2objects_train.input_shape[0] - w1_val.shape[0] + 1,
@@ -112,11 +111,11 @@ def main():
                                               w1_val.shape[3]))
 
             I_hat_from_class_path = tf.nn.conv2d_transpose(u1_hat_from_one_hot, w1,
-                                                             output_shape=[conv_2objects_train.bs,
-                                                                           conv_2objects_train.input_shape[0],
-                                                                           conv_2objects_train.input_shape[1],
-                                                                           conv_2objects_train.input_shape[2]],
-                                                             strides=[1, 1, 1, 1], padding='VALID')
+                                                           output_shape=[conv_2objects_train.bs,
+                                                                         conv_2objects_train.input_shape[0],
+                                                                         conv_2objects_train.input_shape[1],
+                                                                         conv_2objects_train.input_shape[2]],
+                                                           strides=[1, 1, 1, 1], padding='VALID')
 
         # visualize weights of layer 1
         if not os.path.exists(os.path.join(viz_path, "w1")):
@@ -139,7 +138,7 @@ def main():
 
         # visualize reconstruction from act1
         I_hat_from_act1_val = sess.run(I_hat_from_act1, feed_dict={X: train_X[0:  conv_2objects_train.bs],
-                                                               y: train_y[0:  conv_2objects_train.bs]})
+                                                                   y: train_y[0:  conv_2objects_train.bs]})
         save_images([I_hat_from_act1_val[i, :, :, :] for i in range(I_hat_from_act1_val.shape[0])],
                     [str(i) + ".png" for i in range(I_hat_from_act1_val.shape[0])],
                     os.path.join(viz_path, "I_hat_from_act1"), dim=conv_2objects_train.input_shape)
@@ -153,15 +152,15 @@ def main():
 
         # visualize reconstruction from y_hat_one_hot
         I_hat_from_yhat_one_hot_val = sess.run(I_hat_from_yhat_one_hot, feed_dict={X: train_X[0:  conv_2objects_train.bs],
-                                                                   y: train_y[0:  conv_2objects_train.bs]})
+                                                                                   y: train_y[0:  conv_2objects_train.bs]})
         save_images([I_hat_from_yhat_one_hot_val[i, :, :, :] for i in range(I_hat_from_yhat_one_hot_val.shape[0])],
                     [str(i) + ".png" for i in range(I_hat_from_yhat_one_hot_val.shape[0])],
                     os.path.join(viz_path, "I_hat_from_yhat_one_hot"), dim=conv_2objects_train.input_shape)
 
         # visualize class path
         I_hat_from_class_path_val = sess.run(I_hat_from_class_path,
-                                               feed_dict={X: train_X[0:  conv_2objects_train.bs],
-                                                          y: train_y[0:  conv_2objects_train.bs]})
+                                             feed_dict={X: train_X[0:  conv_2objects_train.bs],
+                                                        y: train_y[0:  conv_2objects_train.bs]})
         save_images([I_hat_from_class_path_val[i, :, :, :] for i in range(I_hat_from_class_path_val.shape[0])],
                     [str(i) + ".png" for i in range(I_hat_from_class_path_val.shape[0])],
                     os.path.join(viz_path, "I_hat_from_class_path"), dim=conv_2objects_train.input_shape)
