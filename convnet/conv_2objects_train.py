@@ -20,7 +20,7 @@ random.seed(RANDOM_SEED)
 tf.set_random_seed(RANDOM_SEED)
 np.random.seed(RANDOM_SEED)
 
-image_folder = os.path.join("./images/2objects/")
+image_folder = os.path.join("/mnt/nvme0n1/understand_convnet/data/renderBallTri256")
 
 
 def init_weights(shape, name):
