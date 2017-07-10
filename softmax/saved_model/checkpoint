@@ -1,0 +1,2 @@
+model_checkpoint_path: "softmax_2objects_RGB.ckpt"
+all_model_checkpoint_paths: "softmax_2objects_RGB.ckpt"
