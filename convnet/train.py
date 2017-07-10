@@ -15,10 +15,11 @@ image_mode = "RGB"
 init_std = 1e-4
 saved_model = "conv_ks_7_nf_64_2objects_RGB_"+str(init_std)+".ckpt"
 saved_model_best = "conv_ks_7_nf_64_2objects_RGB_"+str(init_std)+"_best.ckpt"
-image_folder = os.path.join("../images/2objects/")
+image_folder = os.path.join("/mnt/nvme0n1/understand_convnet/data/renderBallTri256")
+os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 RANDOM_SEED = 42
 train_test_ratio = 0.8
-input_shape = [250, 250, 3]
+input_shape = [256, 256, 3]
 ks1 = [7, 7, input_shape[2]]
 nf1 = 64
 activation = tf.nn.tanh
@@ -39,7 +40,7 @@ def save_images(images, fns, path, dim=input_shape):
         if not dim == None:
             image = np.reshape(image, dim)
         #scipy.misc.imsave(os.path.join(path, fn), image,vmin=0,vmax=255)
-        scipy.misc.toimage(image, cmin=0,cmax=255).save(os.path.join(path,fn))
+        misc.toimage(image, cmin=0,cmax=255).save(os.path.join(path,fn))
 
 def init_weights(shape, name):
     """ Weight initialization """
