@@ -24,11 +24,12 @@ shuffle = 0
 # hidden layer activation type
 activation = tf.nn.tanh
 # number of hidden layers
-num_hidden_layers = 2
+num_hidden_layers = 10
 
 viz_dimension = (4, 4)
 img_dim = (64, 64, 3)
 viz_path = os.path.join("visualizations", "rgb_epoch_1e-4_batch_32_h_16_shuffle_0_with_bias_tanh")
+is_viz = True
 num_to_viz = 5
 
 random.seed(RANDOM_SEED)
@@ -141,24 +142,26 @@ def main():
     for epoch in range(epochs):
         for b in range(int(len(train_X)/bs)):
             # all sorts of visualizations, once per epoch
-        
-            viz_path_current_epoch = os.path.join(viz_path, str(epoch*(int(len(train_X)/bs))+b).zfill(6))
-            if not os.path.exists(viz_path_current_epoch):
-                os.mkdir(viz_path_current_epoch)
 
             test_accuracy = np.mean(np.argmax(test_y, axis=1) ==
                                     sess.run(predict, feed_dict={X: test_X, y: test_y}))
-            h_vars_value = sess.run(h_vars, feed_dict={X: train_X_to_viz, y: train_y_to_viz})
 
-            w_muls = [w_vars[0]]
-            for i in range(num_hidden_layers):
-                w_muls += [tf.matmul(w_muls[-1], w_vars[i+1])]
+            if is_viz:
+                viz_path_current_epoch = os.path.join(viz_path, str(epoch*(int(len(train_X)/bs))+b).zfill(6))
+                if not os.path.exists(viz_path_current_epoch):
+                    os.mkdir(viz_path_current_epoch)
 
-            # read out weights
-            w_muls_value = sess.run(w_muls)
+                h_vars_value = sess.run(h_vars, feed_dict={X: train_X_to_viz, y: train_y_to_viz})
 
-            viz_weights_fc(w_muls_value, test_accuracy,
-                           h_vars_value, viz_path_current_epoch, train_fn_to_viz)
+                w_muls = [w_vars[0]]
+                for i in range(num_hidden_layers):
+                    w_muls += [tf.matmul(w_muls[-1], w_vars[i+1])]
+
+                # read out weights
+                w_muls_value = sess.run(w_muls)
+
+                viz_weights_fc(w_muls_value, test_accuracy,
+                               h_vars_value, viz_path_current_epoch, train_fn_to_viz)
 
             # training 
             sess.run(updates, feed_dict={X: train_X[bs * b: bs * b + bs], y: train_y[bs * b: bs * b + bs]})
