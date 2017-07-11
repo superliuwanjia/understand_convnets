@@ -24,12 +24,12 @@ def read_image_data(image_folder, image_mode, train_test_ratio=0.8, shuffle=1):
     for image_path in glob.glob(os.path.join(image_folder, "*.png")):
         fns.append(os.path.basename(image_path))
         Label.append(int(os.path.basename(image_path).split("_")[0]))
-        image = X.append(misc.imread(image_path, mode=image_mode).flatten())
+        X.append(misc.imread(image_path, mode=image_mode).flatten())
     X = np.array(X) / 255.
     Label = np.array(Label)
     fns = np.array(fns)
     
-    print X.shape	
+    print(X.shape)
     # Convert into one-hot vectors
     Y_onehot = to_one_hot(Label)
     

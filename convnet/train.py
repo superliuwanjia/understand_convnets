@@ -15,13 +15,13 @@ image_mode = "RGB"
 init_std = 1e-4
 saved_model = "conv_ks_7_nf_64_2objects_RGB_"+str(init_std)+".ckpt"
 saved_model_best = "conv_ks_7_nf_64_2objects_RGB_"+str(init_std)+"_best.ckpt"
-image_folder = os.path.join("/mnt/nvme0n1/understand_convnet/data/renderBallTri256")
+image_folder = os.path.join("/mnt/nvme0n1/understand_convnet/data/renderBallTri64")
 os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 RANDOM_SEED = 42
 train_test_ratio = 0.8
-input_shape = [256, 256, 3]
-ks1 = [7, 7, input_shape[2]]
-nf1 = 64
+input_shape = [64, 64, 3]
+ks = [3, 3]
+nf = [64, 64]
 activation = tf.nn.tanh
 viz_path = os.path.join("visualizations", "conv_ks_nf_64_2objects_RGB_"+str(init_std)+"_with_bias_tanh")
 
@@ -44,7 +44,6 @@ def save_images(images, fns, path, dim=input_shape):
 
 def init_weights(shape, name):
     """ Weight initialization """
-    # weights = tf.ones(shape)
     weights = tf.random_normal(shape, stddev=init_std)
     return tf.Variable(weights, name=name)
 
@@ -90,21 +89,21 @@ def main():
     X_image = tf.reshape(X, [-1, input_shape[0], input_shape[1], input_shape[2]])
 
     # first layer
-    h_size = nf1 * (input_shape[0] - ks1[0] + 1) * (input_shape[1] - ks1[1] + 1)  # Number of hidden nodes
-    w_conv1 = init_weights([ks1[0], ks1[1], ks1[2], nf1], name="w1")
-
+    w_conv1 = init_weights([ks[0], ks[1], input_shape[2], nf[0]], name="w1")
     u1 = tf.nn.conv2d(X_image, w_conv1, strides=[1, 1, 1, 1], padding='VALID')
-    act1 = activation(u1)
-    # h1 = tf.nn.max_pool(act1, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='SAME')
+    act = activation(u1)
 
-    h1 = tf.reshape(act1, [-1, h_size])
+    # second layer
+    # w_conv2 = init_weights([ks[0], ks[1], nf[0], nf[1]], name="w2")
+    # u2 = tf.nn.conv2d(act, w_conv2, strides=[1, 1, 1, 1], padding='VALID')
+    # act = activation(u2)
 
-    # Weight initializations
-    w_soft = init_weights([h_size, y_size], "w_soft")
+    out = tf.reshape(act, [bs, -1])
+
+    # softmax layer
+    w_soft = init_weights([out[1], y_size], "w_soft")
     b_soft = init_bias([y_size], name="b_soft")
-
-    # Forward propagation
-    u_soft = tf.matmul(h1, w_soft) + b_soft
+    u_soft = tf.matmul(out, w_soft) + b_soft
     yhat = tf.nn.softmax(u_soft)
     predict = tf.argmax(yhat, axis=1)
 
