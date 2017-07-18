@@ -25,7 +25,7 @@ def read_image_data(image_folder, image_mode, train_test_ratio=0.8, shuffle=1):
         fns.append(os.path.basename(image_path))
         Label.append(int(os.path.basename(image_path).split("_")[0]))
         X.append(misc.imread(image_path, mode=image_mode).flatten())
-    X = np.array(X) / 255.
+    X = (np.array(X) / 255.).astype(np.float32)
     Label = np.array(Label)
     fns = np.array(fns)
     

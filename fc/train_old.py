@@ -11,24 +11,25 @@ sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), os.par
 from data_loader import read_image_data
 
 bs = 32
-epochs = 25
-num_hidden = 16
+epochs = 5
+num_hidden = 100
 saved_model = "one_hidden_2objects_RGB_1e-4.ckpt"
 os.environ['CUDA_VISIBLE_DEVICES'] = '0'
-image_folder = os.path.join("/mnt/nvme0n1/understand_convnet/data/BallTri64")
+image_folder = os.path.join("/mnt/group3/ucnn/understand_convnet/data/BallTri64")
 image_mode = "RGB"
 init_std = 1e-4
 RANDOM_SEED = 0
 # number of shuffles applied on the training set
 shuffle = 0
 # hidden layer activation type
-activation = tf.nn.tanh
+activation = tf.nn.relu
 # number of hidden layers
-num_hidden_layers = 10
+num_hidden_layers = 1
 
-viz_dimension = (4, 4)
+viz_dimension = (10, 10)
 img_dim = (64, 64, 3)
-viz_path = os.path.join("visualizations", "rgb_epoch_1e-4_batch_32_h_16_shuffle_0_with_bias_tanh")
+viz_path = os.path.join("visualizations", "rgb_epoch_1e-4_batch_32_h_100_shuffle_0_with_bias_tanh_BallTri64")
+# decide if we use visualizations
 is_viz = True
 num_to_viz = 5
 
