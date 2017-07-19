@@ -15,7 +15,7 @@ def to_one_hot(label):
 def from_one_hot(one_hot):
     return np.argmax(one_hot,axis=1)
 
-def read_image_data(image_folder, image_mode, train_test_ratio=0.8, shuffle=1):
+def read_image_data(image_folder, image_mode, train_test_ratio=0.8, shuffle=1, rand_label=False):
     """ Read the data set and split them into training and test sets """
     X = []
     Label = []
@@ -23,7 +23,10 @@ def read_image_data(image_folder, image_mode, train_test_ratio=0.8, shuffle=1):
 	
     for image_path in glob.glob(os.path.join(image_folder, "*.png")):
         fns.append(os.path.basename(image_path))
-        Label.append(int(os.path.basename(image_path).split("_")[0]))
+        if rand_label:
+            Label.append(np.random.choice(2))
+        else:
+            Label.append(int(os.path.basename(image_path).split("_")[0]))
         X.append(misc.imread(image_path, mode=image_mode).flatten())
     X = (np.array(X) / 255.).astype(np.float32)
     Label = np.array(Label)

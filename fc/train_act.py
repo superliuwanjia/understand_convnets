@@ -11,15 +11,21 @@ from scipy import misc
 sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir))
 from data_loader import read_image_data
 
+
+def str2bool(v):
+    return v.lower() in ('true', '1')
+
 parser = argparse.ArgumentParser()
-parser.add_argument('-dataset', '--dataset', type=str, required=True)
+parser.add_argument('-dataset', '--dataset', type=str, default='2Rec_4000_20_4')
+parser.add_argument('-is_viz', '--is_viz', type=str2bool, default=False, help='decide if using visualizations')
+
 args = parser.parse_args()
 
 # Training parameters
 bs = 128
 epochs = 15
 num_hidden = 100
-# os.environ['CUDA_VISIBLE_DEVICES'] = '7'
+os.environ['CUDA_VISIBLE_DEVICES'] = '5'
 dataset = args.dataset
 image_folder = os.path.join("/mnt/group3/ucnn/understand_convnet/data/", dataset)
 image_mode = "RGB"
@@ -27,7 +33,7 @@ init_std = 1e-4
 lr = 1e-4
 RANDOM_SEED = 42
 num_to_viz = 10
-is_viz = False
+is_viz = args.is_viz
 
 # number of shuffles applied on the training set
 shuffle = 0
@@ -104,7 +110,7 @@ def act_multi(image, w_vars, b_vars, activation):
     return multi
 
 def main():
-    train_X, test_X, train_y, test_y, train_fn, test_fn = read_image_data(image_folder, image_mode)
+    train_X, test_X, train_y, test_y, train_fn, test_fn = read_image_data(image_folder, image_mode, rand_label=True)
 
     # Layer's sizes
     input_size = train_X.shape[1]
