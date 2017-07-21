@@ -18,6 +18,8 @@ def str2bool(v):
 parser = argparse.ArgumentParser()
 parser.add_argument('-dataset', '--dataset', type=str, default='2Rec_4000_20_4')
 parser.add_argument('-is_viz', '--is_viz', type=str2bool, default=False, help='decide if using visualizations')
+parser.add_argument('-rand_label', '--rand_label', type=str2bool, default=False, help='decide if use random labels')
+parser.add_argument('-gpus', '--gpus', type=str, default='1')
 
 args = parser.parse_args()
 
@@ -25,15 +27,16 @@ args = parser.parse_args()
 bs = 128
 epochs = 15
 num_hidden = 100
-os.environ['CUDA_VISIBLE_DEVICES'] = '5'
+os.environ['CUDA_VISIBLE_DEVICES'] = args.gpus
 dataset = args.dataset
 image_folder = os.path.join("/mnt/group3/ucnn/understand_convnet/data/", dataset)
 image_mode = "RGB"
-init_std = 1e-4
+init_std = 1e-1
 lr = 1e-4
 RANDOM_SEED = 42
 num_to_viz = 10
 is_viz = args.is_viz
+rand_label = args.rand_label
 
 # number of shuffles applied on the training set
 shuffle = 0
@@ -110,7 +113,8 @@ def act_multi(image, w_vars, b_vars, activation):
     return multi
 
 def main():
-    train_X, test_X, train_y, test_y, train_fn, test_fn = read_image_data(image_folder, image_mode, rand_label=True)
+    train_X, test_X, train_y, test_y, train_fn, test_fn = read_image_data(image_folder, image_mode,
+                                                                          rand_label=rand_label)
 
     # Layer's sizes
     input_size = train_X.shape[1]
@@ -155,6 +159,9 @@ def main():
     train_y_to_viz = train_y[to_viz, :]
     train_fn_to_viz = train_fn[to_viz]
 
+    # test if input * w1_hidden is nearly zero
+    input_hidden_mul = tf.matmul(X, w1_hidden)
+
     for _ in range(shuffle):
         shuffle_index = range(train_X.shape[0])
         random.shuffle(shuffle_index)
@@ -165,7 +172,7 @@ def main():
     # Saver
     saver = tf.train.Saver()
 
-    # Run SGD
+    # create sess and init vars
     config = tf.ConfigProto()
     config.gpu_options.allow_growth = True
     sess = tf.Session(config=config)
@@ -180,6 +187,9 @@ def main():
         os.mkdir("visualizations")
     if not os.path.exists(viz_path):
         os.mkdir(viz_path)
+
+    input_hidden_mul_val = sess.run(input_hidden_mul, feed_dict={X: train_X_to_viz})
+    print(input_hidden_mul_val)
 
     # logging info
     logging.basicConfig(filename=log_dir, level=logging.DEBUG)
