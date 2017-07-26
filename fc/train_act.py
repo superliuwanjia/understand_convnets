@@ -226,9 +226,6 @@ def main():
     summary_writer = tf.summary.FileWriter(summary_dir)
     sess.run(tf.global_variables_initializer())
 
-    # before training, test if input * w1_hidden is nearly zero
-    w_vars_init_val = sess.run(w_vars)
-
     '''
     input_hidden_mul_init_val, yhat_val = sess.run([h_before_vars, yhat], feed_dict={X: train_X_to_viz})
     for i in range(len(input_hidden_mul_init_val)):
