@@ -46,6 +46,7 @@ init_std = args.init_std
 lr = args.lr
 RANDOM_SEED = 42
 num_to_viz = 10
+patience=30
 is_train = args.is_train
 is_viz = args.is_viz
 is_viz_weight_diff = args.is_viz_weight_diff
@@ -251,24 +252,40 @@ def main():
 
         # train & visualization
         step = 0
+        best_test_accu = -float("inf")
+        n_incr_error = 0  # nb. of consecutive increase in error
+        flag_break = False
         for epoch in range(epochs):
             for b in range(int(len(train_X) / bs)):
 
                 if b % print_accu == 0:
                     # all sorts of visualizations, once per epoch
-                    train_accu = sess.run(accu, feed_dict={X: train_X, y: train_y})
+                    train_accu_val = sess.run(accu, feed_dict={X: train_X, y: train_y})
                     test_accu_val, test_accu_diff_val, test_accu_diff_exsoft_val, sum_str \
                         = sess.run([accu, test_accu_diff, test_accu_diff_exsoft, sum_op],
                                    feed_dict={X: test_X, y: test_y})
 
                     msg = "epoch = {}, batch = {}, train accu = {:.4}, test accu = {:.4f}, " \
                           "test accu diff = {:.4f}, test accu diff exsoft = {:.4f}".\
-                        format(epoch, b, train_accu, test_accu_val, test_accu_diff_val, test_accu_diff_exsoft_val)
+                        format(epoch, b, train_accu_val, test_accu_val,
+                               test_accu_diff_val, test_accu_diff_exsoft_val)
                     print(msg)
                     logging.info(msg)
 
                     summary_writer.add_summary(sum_str, step)
                     summary_writer.flush()
+
+                    n_incr_error += 1
+
+                    if test_accu_val > best_test_accu:
+                        best_test_accu = test_accu_val
+                        n_incr_error = 0
+
+                    if n_incr_error >= patience:
+                        msg = 'Early stopping occured. Optimization Finished!'
+                        print(msg)
+                        logging.info(msg)
+                        flag_break = True
 
                     if is_viz:
                         viz_path_current_epoch = os.path.join(
@@ -294,12 +311,16 @@ def main():
                             w_act_muls += [act_multi(train_X_to_viz[i], w_vars, b_vars, activation)]
                         w_act_muls_value = sess.run(w_act_muls)
 
-                        viz_weights_fc(w_act_muls_value, w_muls_value, test_accu,
+                        viz_weights_fc(w_act_muls_value, w_muls_value, test_accu_val,
                                        h_vars_value, viz_path_current_epoch, train_fn_to_viz)
+
 
                 # training
                 sess.run(updates, feed_dict={X: train_X[bs * b: bs * b + bs], y: train_y[bs * b: bs * b + bs]})
                 step += 1
+
+            if flag_break:
+                break
 
         # save model
         save_path = saver.save(sess, os.path.join("saved_model", saved_model))
