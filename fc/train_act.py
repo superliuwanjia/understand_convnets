@@ -30,6 +30,7 @@ parser.add_argument('-bs', '--bs', type=int, default=128)
 parser.add_argument('-p_accu', '--print_accu', type=int, default=10)
 parser.add_argument('-nhid', '--num_hidden', type=int, default=100)
 parser.add_argument('-nhidlys', '--num_hidden_layers', type=int, default=1)
+parser.add_argument('-pa', '--patience', type=int, default=100)
 
 args = parser.parse_args()
 
@@ -46,7 +47,7 @@ init_std = args.init_std
 lr = args.lr
 RANDOM_SEED = 42
 num_to_viz = 10
-patience=30
+patience = args.patience
 is_train = args.is_train
 is_viz = args.is_viz
 is_viz_weight_diff = args.is_viz_weight_diff
@@ -261,8 +262,8 @@ def main():
                 if b % print_accu == 0:
                     # all sorts of visualizations, once per epoch
                     train_accu_val = sess.run(accu, feed_dict={X: train_X, y: train_y})
-                    test_accu_val, test_accu_diff_val, test_accu_diff_exsoft_val, sum_str \
-                        = sess.run([accu, test_accu_diff, test_accu_diff_exsoft, sum_op],
+                    test_accu_val, test_accu_diff_val, test_accu_diff_exsoft_val \
+                        = sess.run([accu, test_accu_diff, test_accu_diff_exsoft],
                                    feed_dict={X: test_X, y: test_y})
 
                     msg = "epoch = {}, batch = {}, train accu = {:.4}, test accu = {:.4f}, " \
@@ -271,9 +272,6 @@ def main():
                                test_accu_diff_val, test_accu_diff_exsoft_val)
                     print(msg)
                     logging.info(msg)
-
-                    summary_writer.add_summary(sum_str, step)
-                    summary_writer.flush()
 
                     n_incr_error += 1
 
@@ -315,9 +313,12 @@ def main():
                         viz_weights_fc(w_act_muls_value, w_muls_value, test_accu_val,
                                        h_vars_value, viz_path_current_epoch, train_fn_to_viz)
 
-
                 # training
-                sess.run(updates, feed_dict={X: train_X[bs * b: bs * b + bs], y: train_y[bs * b: bs * b + bs]})
+                _, sum_str = sess.run([updates, sum_op],
+                                      feed_dict={X: train_X[bs * b: bs * b + bs],
+                                                 y: train_y[bs * b: bs * b + bs]})
+                summary_writer.add_summary(sum_str, step)
+                summary_writer.flush()
                 step += 1
 
             if flag_break:
