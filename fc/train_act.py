@@ -75,8 +75,8 @@ else:
 saved_model = "fc_nhidlys{}_nhid{}_bs{}_lr_{}_init{}.ckpt".\
     format(num_hidden_layers, num_hidden, bs, lr, init_std)
 
-summary_dir = os.path.join("summaries", "fc_nhidlys{}_nhid{}_bs{}_lr_{}_init{}".
-                           format(num_hidden_layers, num_hidden, bs, lr, init_std))
+summary_dir = os.path.join("summaries", "fc_nhidlys{}_nhid{}_bs{}_lr_{}_init{}_{}".
+                           format(num_hidden_layers, num_hidden, bs, lr, init_std, dataset))
 
 random.seed(RANDOM_SEED)
 tf.set_random_seed(RANDOM_SEED)
