@@ -286,6 +286,7 @@ def main():
                         print(msg)
                         logging.info(msg)
                         flag_break = True
+                        break
 
                     if is_viz:
                         viz_path_current_epoch = os.path.join(
