@@ -24,19 +24,26 @@ parser.add_argument('-is_viz_weight_diff', '--is_viz_weight_diff', type=str2bool
 parser.add_argument('-init_std', '--init_std', type=float, default=1e-1)
 parser.add_argument('-rand_label', '--rand_label', type=str2bool, default=False, help='decide if use random labels')
 parser.add_argument('-gpus', '--gpus', type=str, default='1')
+parser.add_argument('-epochs', '--epochs', type=int, default=15)
+parser.add_argument('-lr', '--lr', type=float, default=1e-3)
+parser.add_argument('-bs', '--bs', type=int, default=128)
+parser.add_argument('-p_accu', '--print_accu', type=int, default=10)
+parser.add_argument('-nhid', '--num_hidden', type=int, default=100)
+parser.add_argument('-nhidlys', '--num_hidden_layers', type=int, default=1)
 
 args = parser.parse_args()
 
 # Training parameters
-bs = 128
-epochs = 10
-num_hidden = 100
+print_accu = args.print_accu
+bs = args.bs
+epochs = args.epochs
+num_hidden = args.num_hidden
 os.environ['CUDA_VISIBLE_DEVICES'] = args.gpus
 dataset = args.dataset
-image_folder = os.path.join("/mnt/group3/ucnn/understand_convnet/data/", dataset)
+image_folder = os.path.join("../data/", dataset)
 image_mode = "RGB"
 init_std = args.init_std
-lr = 1e-4
+lr = args.lr
 RANDOM_SEED = 42
 num_to_viz = 10
 is_train = args.is_train
@@ -49,21 +56,25 @@ shuffle = 0
 # hidden layer activation type
 activation = tf.nn.relu
 # number of hidden layers
-num_hidden_layers = 1
+num_hidden_layers = args.num_hidden_layers
 
 viz_dimension = (10, 10)
 img_dim = (64, 64, 3)
 
-log_dir = os.path.join("logs", "fc_layers{}_neurons{}_bs{}_{}.log".
-                        format(num_hidden_layers, num_hidden, bs, dataset))
+log_dir = os.path.join("logs", "fc_layers{}_neurons{}_bs{}_init{}_{}.log".
+                        format(num_hidden_layers, num_hidden, bs, init_std, dataset))
 if is_viz_weight_diff:
-    viz_path = os.path.join("visualizations", "fc_layers{}_neurons{}_bs{}_{}_weightDiff".
-                            format(num_hidden_layers, num_hidden, bs, dataset))
+    viz_path = os.path.join("visualizations", "fc_nhidlys{}_nhid{}_bs{}_lr{}_init{}_{}_weightDiff".
+                            format(num_hidden_layers, num_hidden, bs, lr, init_std, dataset))
 else:
-    viz_path = os.path.join("visualizations", "fc_layers{}_neurons{}_bs{}_{}_weightRaw".
-                            format(num_hidden_layers, num_hidden, bs, dataset))
+    viz_path = os.path.join("visualizations", "fc_nhidlys{}_nhid{}_bs{}_lr{}_init{}_{}_weightRaw".
+                            format(num_hidden_layers, num_hidden, bs, lr, init_std, dataset))
 
-saved_model = "fc_layers{}_neurons{}_bs{}.ckpt".format(num_hidden_layers, num_hidden, bs)
+saved_model = "fc_nhidlys{}_nhid{}_bs{}_lr_{}_init{}.ckpt".\
+    format(num_hidden_layers, num_hidden, bs, lr, init_std)
+
+summary_dir = os.path.join("summaries", "fc_nhidlys{}_nhid{}_bs{}_lr_{}_init{}".
+                           format(num_hidden_layers, num_hidden, bs, lr, init_std))
 
 random.seed(RANDOM_SEED)
 tf.set_random_seed(RANDOM_SEED)
@@ -107,6 +118,7 @@ def forwardprop(X, w_vars, b_vars, activation):
 
     return yhat, h_vars, h_before_vars
 
+
 def act_multi(image, w_vars, b_vars, activation):
     """
     Record the firing of a given input each layer and do the weight matrices multi
@@ -123,6 +135,7 @@ def act_multi(image, w_vars, b_vars, activation):
         A = tf.diag(act) # the mask
         multi = tf.matmul(tf.matmul(multi, A), w_vars[i + 2])
     return multi
+
 
 def main():
     train_X, test_X, train_y, test_y, train_fn, test_fn = read_image_data(image_folder, image_mode,
@@ -147,6 +160,8 @@ def main():
     w_soft = tf.Variable(tf.random_normal((num_hidden, output_size), stddev=init_std),
                          dtype=tf.float32, name="w_soft")
     w_vars += [w_soft]
+    w_vars_init = [tf.Variable(w_vars[i].initialized_value(), name='w_init_{}'.format(i))
+                   for i in range(len(w_vars))]
 
     # bias initializations
     b1_hidden = tf.Variable(tf.zeros([1, hidden_size]), dtype=tf.float32, name="b1_hidden")
@@ -159,6 +174,22 @@ def main():
     # Forward propagation
     yhat, h_vars, h_before_vars = forwardprop(X, w_vars, b_vars, activation)
     predict = tf.argmax(yhat, axis=1)
+    accu = tf.reduce_mean(tf.to_float(tf.equal(tf.argmax(y, axis=1), predict)))
+
+    # Calculate diff_weights and use it get test_accu_diff
+    w_vars_diff = [w_vars[i] - w_vars_init[i] for i in range(len(w_vars))]
+
+    yhat_test_diff, _, _ = forwardprop(X, w_vars_diff, b_vars, activation)
+    predict_test = tf.argmax(yhat_test_diff, axis=1)
+    test_accu_diff = tf.reduce_mean(tf.to_float(tf.equal(tf.argmax(y, axis=1), predict_test)))
+
+    # Calculate diff_exsoft_weights and use it to get test_accu_diff_exsoft
+    w_vars_diff_exsoft = [w_vars[i] - w_vars_init[i] for i in range(len(w_vars) - 1)]
+    w_vars_diff_exsoft += [w_vars[-1]]
+
+    yhat_test_diff_exsoft, _, _ = forwardprop(X, w_vars_diff_exsoft, b_vars, activation)
+    predict_test_exsoft = tf.argmax(yhat_test_diff_exsoft, axis=1)
+    test_accu_diff_exsoft = tf.reduce_mean(tf.to_float(tf.equal(tf.argmax(y, axis=1), predict_test_exsoft)))
 
     # Backward propagation
     cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=y, logits=yhat))
@@ -181,85 +212,101 @@ def main():
     # Saver
     saver = tf.train.Saver()
 
+    # Summaries
+    sum_op = tf.summary.merge([
+        tf.summary.scalar('accu/test_accu', accu),
+        tf.summary.scalar('accu/test_accu_diff', test_accu_diff),
+        tf.summary.scalar('accu/test_accu_diff_exsoft', test_accu_diff_exsoft)
+    ])
+
     # create sess and init vars
     config = tf.ConfigProto()
     config.gpu_options.allow_growth = True
     sess = tf.Session(config=config)
-    init = tf.global_variables_initializer()
-    sess.run(init)
+    summary_writer = tf.summary.FileWriter(summary_dir)
+    sess.run(tf.global_variables_initializer())
 
     # before training, test if input * w1_hidden is nearly zero
-    w_vars_val, input_hidden_mul_val, yhat_val = sess.run([w_vars, h_before_vars, yhat], feed_dict={X: train_X_to_viz})
-    print('num of hidden layers: {}'.format(len(input_hidden_mul_val)))
-    for i in range(len(input_hidden_mul_val)):
+    w_vars_init_val = sess.run(w_vars)
+
+    '''
+    input_hidden_mul_init_val, yhat_val = sess.run([h_before_vars, yhat], feed_dict={X: train_X_to_viz})
+    for i in range(len(input_hidden_mul_init_val)):
         print('input * w{}_hidden: '.format(i+1))
-        print(input_hidden_mul_val[i])
+        print(input_hidden_mul_init_val[i])
     print('yhat: ')
     print(yhat_val)
+    '''
 
     if is_train:
-
         if not os.path.exists("saved_model"):
             os.mkdir("saved_model")
         if not os.path.exists("logs"):
             os.mkdir("logs")
-        if not os.path.exists("visualizations"):
-            os.mkdir("visualizations")
-        if not os.path.exists(viz_path):
-            os.mkdir(viz_path)
+        if is_viz:
+            if not os.path.exists("visualizations"):
+                os.mkdir("visualizations")
+            if not os.path.exists(viz_path):
+                os.mkdir(viz_path)
 
         # logging info
         logging.basicConfig(filename=log_dir, level=logging.DEBUG)
 
         # train & visualization
+        step = 0
         for epoch in range(epochs):
             for b in range(int(len(train_X) / bs)):
-                # all sorts of visualizations, once per epoch
-                test_accuracy = np.mean(np.argmax(test_y, axis=1) ==
-                                        sess.run(predict, feed_dict={X: test_X, y: test_y}))
 
-                if is_viz:
-                    viz_path_current_epoch = os.path.join(viz_path, str(epoch * (int(len(train_X) / bs)) + b).zfill(6))
-                    if not os.path.exists(viz_path_current_epoch):
-                        os.mkdir(viz_path_current_epoch)
+                if b % print_accu == 0:
+                    # all sorts of visualizations, once per epoch
+                    train_accu = sess.run(accu, feed_dict={X: train_X, y: train_y})
+                    test_accu_val, test_accu_diff_val, test_accu_diff_exsoft_val, sum_str \
+                        = sess.run([accu, test_accu_diff, test_accu_diff_exsoft, sum_op],
+                                   feed_dict={X: test_X, y: test_y})
 
-                    h_vars_value = sess.run(h_vars, feed_dict={X: train_X_to_viz, y: train_y_to_viz})
+                    msg = "epoch = {}, batch = {}, train accu = {:.4}, test accu = {:.4f}, " \
+                          "test accu diff = {:.4f}, test accu diff exsoft = {:.4f}".\
+                        format(epoch, b, train_accu, test_accu_val, test_accu_diff_val, test_accu_diff_exsoft_val)
+                    print(msg)
+                    logging.info(msg)
 
-                    if is_viz_weight_diff:
-                        w_vars_diff = [w_vars[i] - w_vars_val[i] for i in range(len(w_vars))]
-                        w_muls = [w_vars_diff[0]]
-                        for i in range(num_hidden_layers):
-                            w_muls += [tf.matmul(w_muls[-1], w_vars_diff[i + 1])]
-                        w_muls_value = sess.run(w_muls)
-                    else:
-                        w_muls = [w_vars[0]]
-                        for i in range(num_hidden_layers):
-                            w_muls += [tf.matmul(w_muls[-1], w_vars[i + 1])]
-                        w_muls_value = sess.run(w_muls)
+                    summary_writer.add_summary(sum_str, step)
+                    summary_writer.flush()
 
-                    w_act_muls = []
-                    for i in range(num_to_viz):
-                        w_act_muls += [act_multi(train_X_to_viz[i], w_vars, b_vars, activation)]
-                    w_act_muls_value = sess.run(w_act_muls)
+                    if is_viz:
+                        viz_path_current_epoch = os.path.join(
+                            viz_path, str(epoch * (int(len(train_X) / bs)) + b).zfill(6))
+                        if not os.path.exists(viz_path_current_epoch):
+                            os.mkdir(viz_path_current_epoch)
 
-                    viz_weights_fc(w_act_muls_value, w_muls_value, test_accuracy,
-                                   h_vars_value, viz_path_current_epoch, train_fn_to_viz)
+                        h_vars_value = sess.run(h_vars, feed_dict={X: train_X_to_viz, y: train_y_to_viz})
+
+                        if is_viz_weight_diff:
+                            w_muls = [w_vars_diff[0]]
+                            for i in range(num_hidden_layers):
+                                w_muls += [tf.matmul(w_muls[-1], w_vars_diff[i + 1])]
+                            w_muls_value = sess.run(w_muls)
+                        else:
+                            w_muls = [w_vars[0]]
+                            for i in range(num_hidden_layers):
+                                w_muls += [tf.matmul(w_muls[-1], w_vars[i + 1])]
+                            w_muls_value = sess.run(w_muls)
+
+                        w_act_muls = []
+                        for i in range(num_to_viz):
+                            w_act_muls += [act_multi(train_X_to_viz[i], w_vars, b_vars, activation)]
+                        w_act_muls_value = sess.run(w_act_muls)
+
+                        viz_weights_fc(w_act_muls_value, w_muls_value, test_accu,
+                                       h_vars_value, viz_path_current_epoch, train_fn_to_viz)
 
                 # training
                 sess.run(updates, feed_dict={X: train_X[bs * b: bs * b + bs], y: train_y[bs * b: bs * b + bs]})
+                step += 1
 
-                train_accuracy = np.mean(np.argmax(train_y, axis=1) ==
-                                         sess.run(predict, feed_dict={X: train_X, y: train_y}))
-
-                msg = "Epoch = {}, batch = {}, train accuracy = {:.4}, test accuracy = {:.4f}".\
-                    format(epoch + 1, b + 1, train_accuracy, test_accuracy)
-                print(msg)
-
-            logging.info(msg)
-
-            # save model
-            save_path = saver.save(sess, os.path.join("saved_model", saved_model))
-            print("Model saved in file: %s" % save_path)
+        # save model
+        save_path = saver.save(sess, os.path.join("saved_model", saved_model))
+        print("Model saved in file: %s" % save_path)
 
     sess.close()
 
@@ -269,8 +316,7 @@ def viz_weights_fc(w_act_muls_value, w_muls_value, test_accuracy, h_vars_value,
     test_accuracy_pixel = int(test_accuracy * 255)
 
     # weights multi with masking matrix
-    # k is looping the viz images
-    # i is looping the classes
+    # k is looping the viz images, i is looping the classes
     for k in range(num_to_viz):
         w_mul_soft = w_act_muls_value[k]
         save_images([np.concatenate([normalize_contrast(w_mul_soft[:, i]).reshape(img_dim), np.ones(img_dim) *
