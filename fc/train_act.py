@@ -15,6 +15,7 @@ from data_loader import read_image_data
 def str2bool(v):
     return v.lower() in ('true', '1')
 
+
 parser = argparse.ArgumentParser()
 parser.add_argument('-dataset', '--dataset', type=str, default='2Rec_4000_20_4')
 parser.add_argument('-is_train', '--is_train', type=str2bool, default=False, help='decide if training')
@@ -64,7 +65,7 @@ viz_dimension = (10, 10)
 img_dim = (64, 64, 3)
 
 log_dir = os.path.join("logs", "fc_layers{}_neurons{}_bs{}_init{}_{}.log".
-                        format(num_hidden_layers, num_hidden, bs, init_std, dataset))
+                       format(num_hidden_layers, num_hidden, bs, init_std, dataset))
 if is_viz_weight_diff:
     viz_path = os.path.join("visualizations", "fc_nhidlys{}_nhid{}_bs{}_lr{}_init{}_{}_weightDiff".
                             format(num_hidden_layers, num_hidden, bs, lr, init_std, dataset))
@@ -72,7 +73,7 @@ else:
     viz_path = os.path.join("visualizations", "fc_nhidlys{}_nhid{}_bs{}_lr{}_init{}_{}_weightRaw".
                             format(num_hidden_layers, num_hidden, bs, lr, init_std, dataset))
 
-saved_model = "fc_nhidlys{}_nhid{}_bs{}_lr_{}_init{}.ckpt".\
+saved_model = "fc_nhidlys{}_nhid{}_bs{}_lr_{}_init{}.ckpt". \
     format(num_hidden_layers, num_hidden, bs, lr, init_std)
 
 summary_dir = os.path.join("summaries", "fc_nhidlys{}_nhid{}_bs{}_lr_{}_init{}_{}".
@@ -108,7 +109,6 @@ def forwardprop(X, w_vars, b_vars, activation):
     h_vars = [h]
 
     for i in range(num_hidden_layers - 1):
-
         h_before = tf.matmul(h, w_vars[i + 1]) + b_vars[i + 1]
         h = activation(h_before)
 
@@ -128,13 +128,13 @@ def act_multi(image, w_vars, b_vars, activation):
     image = tf.reshape(image, [1, -1])
     h = activation(tf.matmul(image, w_vars[0]) + b_vars[0])
     act = tf.sign(tf.reshape(h, [-1]))
-    A = tf.diag(act) # the mask
+    A = tf.diag(act)  # the mask
     multi = tf.matmul(tf.matmul(w_vars[0], A), w_vars[1])
 
     for i in range(num_hidden_layers - 1):
         h = activation(tf.matmul(h, w_vars[i + 1]) + b_vars[i + 1])
         act = tf.sign(tf.reshape(h, [-1]))
-        A = tf.diag(act) # the mask
+        A = tf.diag(act)  # the mask
         multi = tf.matmul(tf.matmul(multi, A), w_vars[i + 2])
     return multi
 
@@ -182,8 +182,8 @@ def main():
     w_vars_diff = [w_vars[i] - w_vars_init[i] for i in range(len(w_vars))]
 
     yhat_test_diff, _, _ = forwardprop(X, w_vars_diff, b_vars, activation)
-    predict_test = tf.argmax(yhat_test_diff, axis=1)
-    test_accu_diff = tf.reduce_mean(tf.to_float(tf.equal(tf.argmax(y, axis=1), predict_test)))
+    predict_test_diff = tf.argmax(yhat_test_diff, axis=1)
+    test_accu_diff = tf.reduce_mean(tf.to_float(tf.equal(tf.argmax(y, axis=1), predict_test_diff)))
 
     # Calculate diff_exsoft_weights and use it to get test_accu_diff_exsoft
     w_vars_diff_exsoft = [w_vars[i] - w_vars_init[i] for i in range(len(w_vars) - 1)]
@@ -216,9 +216,9 @@ def main():
 
     # Summaries
     sum_op = tf.summary.merge([
-        tf.summary.scalar('accu/test_accu', accu),
-        tf.summary.scalar('accu/test_accu_diff', test_accu_diff),
-        tf.summary.scalar('accu/test_accu_diff_exsoft', test_accu_diff_exsoft)
+        tf.summary.scalar('accu', accu),
+        tf.summary.scalar('accu_diff', test_accu_diff),
+        tf.summary.scalar('accu_diff_exsoft', test_accu_diff_exsoft)
     ])
 
     # create sess and init vars
@@ -267,7 +267,7 @@ def main():
                                    feed_dict={X: test_X, y: test_y})
 
                     msg = "epoch = {}, batch = {}, train accu = {:.4}, test accu = {:.4f}, " \
-                          "test accu diff = {:.4f}, test accu diff exsoft = {:.4f}".\
+                          "test accu diff = {:.4f}, test accu diff exsoft = {:.4f}". \
                         format(epoch, b, train_accu_val, test_accu_val,
                                test_accu_diff_val, test_accu_diff_exsoft_val)
                     print(msg)
@@ -357,7 +357,7 @@ def viz_weights_fc(w_act_muls_value, w_muls_value, test_accuracy, h_vars_value,
             [np.concatenate(
                 [normalize_contrast(w_mul_value[:, viz_dimension[0] * i + j].reshape(img_dim))
                  for j in range(viz_dimension[1])], axis=1)
-             for i in range(viz_dimension[0])], axis=0)
+                for i in range(viz_dimension[0])], axis=0)
 
         # put filter weights on the right side of stacked filters
         # filter weights are first scaled to match matrix dimension
